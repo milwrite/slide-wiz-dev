@@ -10,7 +10,7 @@
   let models = $state<Model[]>([])
   let loading = $state(true)
 
-  const grouped = $derived(() => {
+  const grouped = $derived.by(() => {
     const groups: Record<string, Model[]> = {}
     for (const m of models) {
       const key = m.provider
@@ -59,7 +59,7 @@
     </select>
   {:else}
     <select value={$selectedModelId} onchange={handleChange}>
-      {#each Object.entries(grouped()) as [provider, providerModels]}
+      {#each Object.entries(grouped) as [provider, providerModels]}
         <optgroup label={provider.charAt(0).toUpperCase() + provider.slice(1)}>
           {#each providerModels as model}
             <option value={model.id}>{model.name}</option>

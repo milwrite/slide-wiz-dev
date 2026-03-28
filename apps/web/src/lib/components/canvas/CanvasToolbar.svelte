@@ -26,8 +26,9 @@
   async function handleExport() {
     if (!$currentDeck || exporting) return
     exporting = true
+    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
     try {
-      const res = await fetch(`/api/decks/${$currentDeck.id}/export`, { method: 'POST' })
+      const res = await fetch(`${API_URL}/api/decks/${$currentDeck.id}/export`, { method: 'POST', credentials: 'include' })
       if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)

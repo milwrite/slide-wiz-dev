@@ -25,7 +25,7 @@
 
   const groupOrder = ['title', 'section-divider', 'body', 'resources']
 
-  let grouped = $derived(() => {
+  let grouped = $derived.by(() => {
     const groups: Record<string, Template[]> = {}
     for (const t of templates) {
       if (!groups[t.slideType]) groups[t.slideType] = []
@@ -94,7 +94,7 @@
   {:else if templates.length === 0}
     <div class="center-msg">No templates available yet. Templates will appear here after seeding.</div>
   {:else}
-    {#each grouped() as group}
+    {#each grouped as group}
       <div class="group">
         <h3 class="group-header">{group.label}</h3>
         <div class="template-grid">
