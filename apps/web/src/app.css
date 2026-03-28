@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Brand Colors */
+  --navy: #1D3A83;
+  --blue: #3B73E6;
+  --blue-hover: #2A6FB8;
+  --teal: #2FB8D6;
+  --gold: #ffb81c;
+  --cream: #fffcd5;
+  --pearl: #f7f4eb;
+  --stone: #333333;
+
+  /* Semantic Colors */
+  --color-primary: var(--blue);
+  --color-primary-hover: var(--blue-hover);
+  --color-primary-dark: var(--navy);
+  --color-accent: var(--teal);
+  --color-bg: #ffffff;
+  --color-bg-secondary: #f8fafc;
+  --color-bg-tertiary: #f1f5f9;
+  --color-text: var(--stone);
+  --color-text-secondary: #64748b;
+  --color-text-muted: #94a3b8;
+  --color-border: #e2e8f0;
+  --color-border-focus: var(--blue);
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: var(--gold);
+
+  /* Typography */
+  --font-display: 'Outfit', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* Spacing */
+  --panel-left-width: 280px;
+  --panel-right-width: 240px;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}

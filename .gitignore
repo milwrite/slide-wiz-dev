@@ -1,1 +1,27 @@
 .superpowers/
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.svelte-kit/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Turbo
+.turbo/
+
+# Database
+*.db
+*.db-journal
+data/
