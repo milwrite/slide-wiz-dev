@@ -58,10 +58,12 @@ slide-maker/
 │   │   │   │   ├── renderers/        ← Block type renderers (text, image, code, etc.)
 │   │   │   │   └── utils/
 │   │   │   ├── routes/
-│   │   │   │   ├── +layout.svelte    ← Auth guard, three-panel shell
+│   │   │   │   ├── +layout.svelte    ← Auth guard
 │   │   │   │   ├── login/
 │   │   │   │   ├── register/
-│   │   │   │   └── deck/[id]/        ← Main editor route
+│   │   │   │   ├── (app)/
+│   │   │   │   │   ├── +page.svelte  ← Deck gallery (home after login)
+│   │   │   │   │   └── deck/[id]/    ← Three-panel editor
 │   │   │   └── app.css               ← CUNY AI Lab brand tokens
 │   │   └── package.json
 │   └── api/                ← Hono API server
@@ -93,6 +95,16 @@ slide-maker/
 ├── pnpm-workspace.yaml
 └── package.json
 ```
+
+### User Experience Flow
+
+After login, users land on a **deck gallery** — a grid/list of all their decks (owned + shared with them). Each deck card shows the name, thumbnail of the first slide, last edited date, and a status indicator. From here users can:
+- Create a new deck (opens the three-panel editor)
+- Open an existing deck (resumes editing with chat history intact)
+- Duplicate, rename, or delete a deck
+- Share a deck with other users
+
+Each deck has its own independent chat history. Users can have multiple decks in progress simultaneously — the gallery is their home base.
 
 ### Deployment Path
 
@@ -387,7 +399,7 @@ Admin dashboard (/admin/users)
   • Rejected → status: "rejected", user sees rejection message
        │
        ▼
-Approved user logs in → session created → redirected to deck list
+Approved user logs in → session created → redirected to deck gallery
 ```
 
 ### Key Details
@@ -433,6 +445,12 @@ Approved user logs in → session created → redirected to deck list
 | `/api/chat` | POST | session | Chat with AI agent (SSE stream) |
 | `/api/chat/:deckId/history` | GET | session | Get chat history for a deck |
 | `/api/providers` | GET | session | List available providers/models |
+| `/api/decks/:id/share` | POST | session (owner) | Share deck with another user by email |
+| `/api/decks/:id/share/:userId` | DELETE | session (owner) | Remove sharing access |
+| `/api/decks/:id/collaborators` | GET | session | List deck collaborators |
+| `/api/decks/:id/lock` | POST | session | Acquire edit lock on a deck |
+| `/api/decks/:id/lock` | DELETE | session | Release edit lock |
+| `/api/decks/:id/lock/heartbeat` | POST | session | Refresh lock TTL |
 
 ---
 
@@ -562,6 +580,45 @@ Pulled from the CUNY AI Lab website (`CUNY-AI-Lab-website` repo):
 - Favicon: `favicon.png` (16px, 32px variants)
 
 The builder UI itself uses these brand tokens. The default theme for generated decks also uses this palette, with the ability to create alternate themes.
+
+---
+
+## Skills & Workflows for Implementation
+
+### Frontend Design Skill
+
+Use the `frontend-design` skill for all UI implementation work — the three-panel shell, chat interface, canvas renderer, resource tabs, auth pages, and admin dashboard. This skill enforces high design quality, avoids generic AI aesthetics, and produces production-grade interfaces that match the CUNY AI Lab brand identity.
+
+Invoke it for:
+- Initial scaffold of the three-panel layout
+- Each major UI component (chat panel, slide outline accordion, canvas, resource tabs)
+- Auth pages (login, register, pending approval, admin queue)
+- Any visual polish passes
+
+### Custom Skill: Slide Deck Navigation Engine
+
+Create a custom skill (`slide-deck-navigation`) that codifies the slide presentation workflow used across the existing CUNY AI Lab decks. This skill captures the patterns Claude has used when building those decks and makes them repeatable for the exported slide engine.
+
+**What the skill encodes:**
+
+1. **Section-based navigation** — each `<section>` is a slide, keyboard arrow keys advance/retreat, nested sections for vertical slide groups
+2. **Slide counter and progress bar** — "← 1 / N →" controls with prev/next arrows, visual progress indicator
+3. **Escape overview mode** — grid thumbnail view of all slides for quick navigation and reorientation, triggered by Escape key
+4. **Fragment-based progressive disclosure** — sub-elements within a slide that reveal sequentially on click/advance, with `data-fragment` ordering
+5. **Section label headers** — persistent category labels above slide titles that orient the viewer within the deck structure
+6. **Keyboard controls** — arrow keys (left/right for horizontal, up/down for vertical groups), Escape for overview, Enter/Space for fragment advance
+7. **Touch/swipe support** — swipe gestures for mobile presentation
+8. **URL hash navigation** — each slide gets a hash fragment (`#/3`) for direct linking and browser back/forward support
+9. **Skip-to-content accessibility** — jump links for keyboard and screen reader navigation
+10. **Print/PDF-friendly rendering** — CSS `@media print` rules that lay out all slides vertically for printing
+
+**Why this is a custom skill, not just code:** The navigation engine is the core of the exported deck output. Every zip export produces a deck that uses this engine. By encoding it as a skill, any future session that touches the export pipeline or the canvas preview has access to the full set of conventions and patterns — without re-deriving them from the source repos each time.
+
+**Skill creation:** Build this skill during implementation (using `skill-creator`) by:
+1. Analyzing the navigation JS across the existing deck repos (knowledge-collections, system-prompting, creative-coding, etc.)
+2. Documenting the common patterns, keyboard bindings, DOM structure, and CSS conventions
+3. Defining the canonical implementation that the slide maker's export engine should produce
+4. Including examples of edge cases (empty fragment lists, single-slide decks, deep vertical nesting)
 
 ---
 
