@@ -4,8 +4,10 @@
   import ArtifactsTab from './ArtifactsTab.svelte'
   import ThemesTab from './ThemesTab.svelte'
   import { activeResourceTab } from '$lib/stores/ui'
+  import { currentDeck } from '$lib/stores/deck'
 
   let activeTab = $state<'files' | 'templates' | 'artifacts' | 'themes'>('templates')
+  let deckId = $derived($currentDeck?.id ?? '')
 
   $effect(() => {
     const unsub = activeResourceTab.subscribe((v) => { activeTab = v })
@@ -39,7 +41,7 @@
 
   <div class="tab-content">
     {#if activeTab === 'files'}
-      <FilesTab />
+      <FilesTab {deckId} />
     {:else if activeTab === 'templates'}
       <TemplatesTab />
     {:else if activeTab === 'artifacts'}
