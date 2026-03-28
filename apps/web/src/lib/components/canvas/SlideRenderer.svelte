@@ -100,6 +100,8 @@
         modules={heroModules}
         zone="hero"
         {editable}
+        deckId={slide.deckId}
+        slideId={slide.id}
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
         {onEditorReady}
@@ -113,6 +115,8 @@
           modules={contentModules}
           zone="content"
           {editable}
+          deckId={slide.deckId}
+          slideId={slide.id}
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
           {onEditorReady}
@@ -124,6 +128,8 @@
           modules={stageModules}
           zone="stage"
           {editable}
+          deckId={slide.deckId}
+          slideId={slide.id}
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
           {onEditorReady}
@@ -137,6 +143,8 @@
         modules={mainModules}
         zone="main"
         {editable}
+        deckId={slide.deckId}
+        slideId={slide.id}
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
         {onEditorReady}

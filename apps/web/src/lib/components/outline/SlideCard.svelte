@@ -5,17 +5,30 @@
   import { activeSlideId } from '$lib/stores/ui'
   import { currentDeck, removeSlideFromDeck, updateSlideInDeck } from '$lib/stores/deck'
 
+  const layoutLabels: Record<string, string> = {
+    'title-slide': 'Title Slide',
+    'layout-split': 'Split (Text + Visual)',
+    'layout-content': 'Full Content',
+    'layout-grid': 'Card Grid',
+    'layout-full-dark': 'Dark Section',
+    'layout-divider': 'Section Break',
+    'closing-slide': 'Closing',
+  }
+
   let { slide, active, index }: {
     slide: {
       id: string
       deckId: string
       type: string
+      layout?: string
       order: number
       blocks: { id: string; type: string; data: Record<string, unknown> }[]
     }
     active: boolean
     index: number
   } = $props()
+
+  let layoutLabel = $derived(layoutLabels[slide.layout ?? slide.type] ?? slide.layout ?? slide.type)
 
   let deleting = $state(false)
   let blockItems = $state(slide.blocks)
@@ -74,7 +87,7 @@
   <div class="card-header">
     <span class="drag-handle" title="Drag to reorder">{'\u2807'}</span>
     <span class="arrow">{active ? '\u25BC' : '\u25B6'}</span>
-    <span class="slide-label">{index + 1}. {slide.type}</span>
+    <span class="slide-label">{index + 1}. {layoutLabel}</span>
     {#if active}
       <span class="active-badge">ACTIVE</span>
     {/if}
