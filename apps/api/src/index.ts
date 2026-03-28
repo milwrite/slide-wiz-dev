@@ -7,6 +7,7 @@ import admin from './routes/admin.js'
 import { decksRouter } from './routes/decks.js'
 import chat from './routes/chat.js'
 import providers from './routes/providers.js'
+import resources from './routes/resources.js'
 
 const app = new Hono()
 
@@ -22,6 +23,7 @@ app.route('/api/admin', admin)
 app.route('/api/decks', decksRouter)
 app.route('/api/chat', chat)
 app.route('/api/providers', providers)
+app.route('/api', resources)
 
 serve({
   fetch: app.fetch,
