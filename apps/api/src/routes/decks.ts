@@ -1,0 +1,404 @@
+import { Hono } from 'hono'
+import { eq, and, desc, inArray, sql } from 'drizzle-orm'
+import { createId } from '@paralleldrive/cuid2'
+import type { Session, User } from 'lucia'
+import { generateSlug } from '@slide-maker/shared'
+import { db } from '../db/index.js'
+import { decks, deckAccess, slides, contentBlocks } from '../db/schema.js'
+import { authMiddleware } from '../middleware/auth.js'
+
+type AuthEnv = {
+  Variables: {
+    user: User
+    session: Session
+  }
+}
+
+export const decksRouter = new Hono<AuthEnv>()
+
+// All routes require auth
+decksRouter.use('*', authMiddleware)
+
+// GET / — List user's decks
+decksRouter.get('/', async (c) => {
+  const user = c.get('user')
+
+  const accessRows = await db
+    .select({ deckId: deckAccess.deckId })
+    .from(deckAccess)
+    .where(eq(deckAccess.userId, user.id))
+
+  if (accessRows.length === 0) {
+    return c.json({ decks: [] })
+  }
+
+  const deckIds = accessRows.map((r) => r.deckId)
+  const userDecks = await db
+    .select()
+    .from(decks)
+    .where(inArray(decks.id, deckIds))
+    .orderBy(desc(decks.updatedAt))
+
+  return c.json({ decks: userDecks })
+})
+
+// POST / — Create a deck
+decksRouter.post('/', async (c) => {
+  const user = c.get('user')
+  const body = await c.req.json()
+  const { name, themeId } = body
+
+  if (!name) {
+    return c.json({ error: 'Name is required' }, 400)
+  }
+
+  const id = createId()
+  let slug = generateSlug(name)
+
+  // Check slug uniqueness, append id fragment if collision
+  const existing = await db
+    .select({ id: decks.id })
+    .from(decks)
+    .where(eq(decks.slug, slug))
+    .get()
+
+  if (existing) {
+    slug = `${slug}-${id.slice(0, 8)}`
+  }
+
+  const now = new Date()
+
+  await db.insert(decks).values({
+    id,
+    name,
+    slug,
+    themeId: themeId || null,
+    metadata: {},
+    createdBy: user.id,
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  await db.insert(deckAccess).values({
+    deckId: id,
+    userId: user.id,
+    role: 'owner',
+  })
+
+  return c.json({ id, name, slug }, 201)
+})
+
+// GET /:id — Get full deck with slides and blocks
+decksRouter.get('/:id', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')
+
+  // Check access
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access) {
+    return c.json({ error: 'Not found or no access' }, 404)
+  }
+
+  const deck = await db.select().from(decks).where(eq(decks.id, deckId)).get()
+  if (!deck) {
+    return c.json({ error: 'Deck not found' }, 404)
+  }
+
+  const deckSlides = await db
+    .select()
+    .from(slides)
+    .where(eq(slides.deckId, deckId))
+    .orderBy(slides.order)
+
+  const slideIds = deckSlides.map((s) => s.id)
+  let blocks: (typeof contentBlocks.$inferSelect)[] = []
+  if (slideIds.length > 0) {
+    blocks = await db
+      .select()
+      .from(contentBlocks)
+      .where(inArray(contentBlocks.slideId, slideIds))
+      .orderBy(contentBlocks.order)
+  }
+
+  // Group blocks by slideId
+  const blocksBySlide = new Map<string, (typeof contentBlocks.$inferSelect)[]>()
+  for (const block of blocks) {
+    const arr = blocksBySlide.get(block.slideId) || []
+    arr.push(block)
+    blocksBySlide.set(block.slideId, arr)
+  }
+
+  const slidesWithBlocks = deckSlides.map((slide) => ({
+    ...slide,
+    blocks: blocksBySlide.get(slide.id) || [],
+  }))
+
+  return c.json({ ...deck, slides: slidesWithBlocks })
+})
+
+// PATCH /:id — Update deck metadata/theme
+decksRouter.patch('/:id', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')
+
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access) {
+    return c.json({ error: 'Not found or no access' }, 404)
+  }
+
+  if (access.role === 'viewer') {
+    return c.json({ error: 'Viewers cannot edit decks' }, 403)
+  }
+
+  const body = await c.req.json()
+  const updates: Record<string, unknown> = { updatedAt: new Date() }
+
+  if (body.name !== undefined) updates.name = body.name
+  if (body.themeId !== undefined) updates.themeId = body.themeId
+  if (body.metadata !== undefined) updates.metadata = body.metadata
+
+  await db.update(decks).set(updates).where(eq(decks.id, deckId))
+
+  const updated = await db.select().from(decks).where(eq(decks.id, deckId)).get()
+  return c.json(updated)
+})
+
+// DELETE /:id — Delete deck (owner only)
+decksRouter.delete('/:id', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')
+
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access || access.role !== 'owner') {
+    return c.json({ error: 'Only the owner can delete a deck' }, 403)
+  }
+
+  await db.delete(decks).where(eq(decks.id, deckId))
+  return c.json({ message: 'Deck deleted' })
+})
+
+// POST /:id/slides — Add a slide
+decksRouter.post('/:id/slides', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')
+
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access || access.role === 'viewer') {
+    return c.json({ error: 'No permission to add slides' }, 403)
+  }
+
+  const body = await c.req.json()
+  const { type, blocks: blockData, insertAfter } = body
+
+  if (!type) {
+    return c.json({ error: 'Slide type is required' }, 400)
+  }
+
+  // Calculate order
+  let order: number
+
+  if (insertAfter) {
+    // Find the slide to insert after
+    const afterSlide = await db
+      .select()
+      .from(slides)
+      .where(and(eq(slides.id, insertAfter), eq(slides.deckId, deckId)))
+      .get()
+
+    if (!afterSlide) {
+      return c.json({ error: 'insertAfter slide not found' }, 400)
+    }
+
+    order = afterSlide.order + 1
+
+    // Shift subsequent slides
+    await db
+      .update(slides)
+      .set({ order: sql`${slides.order} + 1` })
+      .where(and(eq(slides.deckId, deckId), sql`${slides.order} >= ${order}`))
+  } else {
+    // Append to end
+    const lastSlide = await db
+      .select({ maxOrder: sql<number>`COALESCE(MAX(${slides.order}), -1)` })
+      .from(slides)
+      .where(eq(slides.deckId, deckId))
+      .get()
+
+    order = (lastSlide?.maxOrder ?? -1) + 1
+  }
+
+  const slideId = createId()
+  const now = new Date()
+
+  await db.insert(slides).values({
+    id: slideId,
+    deckId,
+    type,
+    order,
+    notes: null,
+    fragments: false,
+    createdAt: now,
+    updatedAt: now,
+  })
+
+  // Create content blocks if provided
+  const createdBlocks: (typeof contentBlocks.$inferSelect)[] = []
+  if (blockData && Array.isArray(blockData)) {
+    for (let i = 0; i < blockData.length; i++) {
+      const block = blockData[i]
+      const blockId = createId()
+      const blockRow = {
+        id: blockId,
+        slideId,
+        type: block.type,
+        data: block.data || {},
+        layout: block.layout || null,
+        order: i,
+      }
+      await db.insert(contentBlocks).values(blockRow)
+      createdBlocks.push(blockRow)
+    }
+  }
+
+  // Update deck's updatedAt
+  await db.update(decks).set({ updatedAt: now }).where(eq(decks.id, deckId))
+
+  const newSlide = await db.select().from(slides).where(eq(slides.id, slideId)).get()
+  return c.json({ ...newSlide, blocks: createdBlocks }, 201)
+})
+
+// PATCH /:id/slides/:slideId — Update slide
+decksRouter.patch('/:id/slides/:slideId', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')
+  const slideId = c.req.param('slideId')
+
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access || access.role === 'viewer') {
+    return c.json({ error: 'No permission to edit slides' }, 403)
+  }
+
+  const slide = await db
+    .select()
+    .from(slides)
+    .where(and(eq(slides.id, slideId), eq(slides.deckId, deckId)))
+    .get()
+
+  if (!slide) {
+    return c.json({ error: 'Slide not found' }, 404)
+  }
+
+  const body = await c.req.json()
+  const updates: Record<string, unknown> = { updatedAt: new Date() }
+
+  if (body.notes !== undefined) updates.notes = body.notes
+  if (body.fragments !== undefined) updates.fragments = body.fragments
+
+  await db.update(slides).set(updates).where(eq(slides.id, slideId))
+
+  // Update deck's updatedAt
+  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+
+  const updated = await db.select().from(slides).where(eq(slides.id, slideId)).get()
+  return c.json(updated)
+})
+
+// DELETE /:id/slides/:slideId — Delete slide and re-order
+decksRouter.delete('/:id/slides/:slideId', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')
+  const slideId = c.req.param('slideId')
+
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access || access.role === 'viewer') {
+    return c.json({ error: 'No permission to delete slides' }, 403)
+  }
+
+  const slide = await db
+    .select()
+    .from(slides)
+    .where(and(eq(slides.id, slideId), eq(slides.deckId, deckId)))
+    .get()
+
+  if (!slide) {
+    return c.json({ error: 'Slide not found' }, 404)
+  }
+
+  await db.delete(slides).where(eq(slides.id, slideId))
+
+  // Re-order remaining slides
+  await db
+    .update(slides)
+    .set({ order: sql`${slides.order} - 1` })
+    .where(and(eq(slides.deckId, deckId), sql`${slides.order} > ${slide.order}`))
+
+  // Update deck's updatedAt
+  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+
+  return c.json({ message: 'Slide deleted' })
+})
+
+// POST /:id/slides/reorder — Reorder slides
+decksRouter.post('/:id/slides/reorder', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')
+
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access || access.role === 'viewer') {
+    return c.json({ error: 'No permission to reorder slides' }, 403)
+  }
+
+  const body = await c.req.json()
+  const { order: slideOrder } = body
+
+  if (!Array.isArray(slideOrder)) {
+    return c.json({ error: 'order must be an array of slide IDs' }, 400)
+  }
+
+  for (let i = 0; i < slideOrder.length; i++) {
+    await db
+      .update(slides)
+      .set({ order: i })
+      .where(and(eq(slides.id, slideOrder[i]), eq(slides.deckId, deckId)))
+  }
+
+  // Update deck's updatedAt
+  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+
+  return c.json({ message: 'Slides reordered' })
+})
