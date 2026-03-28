@@ -1,8 +1,34 @@
 <script lang="ts">
+  import { fitText } from '$lib/utils/text-measure'
+
   let { data = {}, editable = false }: { data: Record<string, unknown>; editable: boolean } = $props()
 
   let text = $derived(typeof data.markdown === 'string' ? data.markdown : typeof data.text === 'string' ? data.text : '')
   let column = $derived(typeof data.column === 'string' ? data.column : '')
+
+  let containerEl: HTMLDivElement | undefined = $state(undefined)
+  let fittedFontSize: number | undefined = $state(undefined)
+
+  const BASE_SIZE = 17 // ~1.1rem
+  const MIN_SIZE = 12
+  const LINE_HEIGHT = 1.7
+
+  $effect(() => {
+    // Track text so we re-measure when it changes
+    void text
+    if (!containerEl || !text.trim()) {
+      fittedFontSize = undefined
+      return
+    }
+    const w = containerEl.clientWidth
+    const h = containerEl.clientHeight
+    if (w <= 0 || h <= 0) {
+      fittedFontSize = undefined
+      return
+    }
+    const size = fitText(text, 'Inter', BASE_SIZE, '400', w, h, LINE_HEIGHT, MIN_SIZE)
+    fittedFontSize = size < BASE_SIZE ? size : undefined
+  })
 
   function markdownToHtml(md: string): string {
     const lines = md.split('\n')
@@ -66,12 +92,14 @@
 </script>
 
 <div
+  bind:this={containerEl}
   class="text-block"
   class:column-left={column === 'left'}
   class:column-right={column === 'right'}
   contenteditable={editable}
   oninput={handleInput}
   role={editable ? 'textbox' : undefined}
+  style:font-size={fittedFontSize ? `${fittedFontSize}px` : undefined}
 >
   {#if editable}
     {text}

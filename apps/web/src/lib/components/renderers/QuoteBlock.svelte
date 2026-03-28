@@ -1,12 +1,27 @@
 <script lang="ts">
+  import { fitText } from '$lib/utils/text-measure'
+
   let { data = {} }: { data: Record<string, unknown>; editable: boolean } = $props()
 
   let text = $derived(typeof data.text === 'string' ? data.text : '')
   let attribution = $derived(typeof data.attribution === 'string' ? data.attribution : '')
+
+  let containerEl: HTMLElement | undefined = $state(undefined)
+  let fittedFontSize: number | undefined = $state(undefined)
+
+  $effect(() => {
+    void text
+    if (!containerEl || !text.trim()) { fittedFontSize = undefined; return }
+    const w = containerEl.clientWidth
+    const h = containerEl.clientHeight
+    if (w <= 0 || h <= 0) { fittedFontSize = undefined; return }
+    const size = fitText(text, 'Outfit', 22, 'italic', w, h, 1.6, 14)
+    fittedFontSize = size < 22 ? size : undefined
+  })
 </script>
 
-<blockquote class="quote-block">
-  <p class="quote-text">{text}</p>
+<blockquote class="quote-block" bind:this={containerEl}>
+  <p class="quote-text" style:font-size={fittedFontSize ? `${fittedFontSize}px` : undefined}>{text}</p>
   {#if attribution}
     <cite class="quote-attribution">— {attribution}</cite>
   {/if}
