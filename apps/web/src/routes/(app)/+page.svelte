@@ -5,11 +5,13 @@
   import { currentUser } from '$lib/stores/auth';
   import DeckGrid from '$lib/components/gallery/DeckGrid.svelte';
   import NewDeckDialog from '$lib/components/gallery/NewDeckDialog.svelte';
+  import ShareDeckDialog from '$lib/components/gallery/ShareDeckDialog.svelte';
 
   let decks = $state<any[]>([]);
   let loading = $state(true);
   let error = $state('');
   let showNewDeck = $state(false);
+  let sharingDeckId = $state<string | null>(null);
   let user = $state<any>(null);
 
   currentUser.subscribe((u) => {
@@ -87,11 +89,15 @@
     {#if loading}
       <p class="loading-text">Loading decks...</p>
     {:else}
-      <DeckGrid {decks} ondelete={handleDelete} />
+      <DeckGrid {decks} ondelete={handleDelete} onshare={(id) => (sharingDeckId = id)} />
     {/if}
   </main>
 
   <NewDeckDialog bind:open={showNewDeck} />
+
+  {#if sharingDeckId}
+    <ShareDeckDialog deckId={sharingDeckId} onclose={() => (sharingDeckId = null)} />
+  {/if}
 </div>
 
 <style>

@@ -3,6 +3,8 @@
   import SlideOutline from '$lib/components/outline/SlideOutline.svelte'
   import SlideCanvas from '$lib/components/canvas/SlideCanvas.svelte'
   import ResourcePanel from '$lib/components/resources/ResourcePanel.svelte'
+
+  let { editable = true }: { editable?: boolean } = $props()
 </script>
 
 <div class="editor-shell">
@@ -15,7 +17,7 @@
     </div>
   </div>
   <div class="center-panel">
-    <SlideCanvas />
+    <SlideCanvas {editable} />
   </div>
   <div class="right-panel">
     <ResourcePanel />

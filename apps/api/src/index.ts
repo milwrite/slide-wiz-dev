@@ -9,6 +9,7 @@ import exportRouter from './routes/export.js'
 import chat from './routes/chat.js'
 import providers from './routes/providers.js'
 import resources from './routes/resources.js'
+import sharing from './routes/sharing.js'
 
 const app = new Hono()
 
@@ -23,6 +24,7 @@ app.route('/api/auth', auth)
 app.route('/api/admin', admin)
 app.route('/api/decks', decksRouter)
 app.route('/api/decks', exportRouter)
+app.route('/api/decks', sharing)
 app.route('/api/chat', chat)
 app.route('/api/providers', providers)
 app.route('/api', resources)

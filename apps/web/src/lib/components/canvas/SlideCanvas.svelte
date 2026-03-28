@@ -4,6 +4,8 @@
   import CanvasToolbar from './CanvasToolbar.svelte'
   import SlideRenderer from './SlideRenderer.svelte'
 
+  let { editable = true }: { editable?: boolean } = $props()
+
   let activeSlide = $derived(
     $currentDeck?.slides.find((s) => s.id === $activeSlideId) ?? null
   )
@@ -14,7 +16,7 @@
   <div class="canvas-area">
     {#if activeSlide}
       <div class="slide-frame">
-        <SlideRenderer slide={activeSlide} editable={true} />
+        <SlideRenderer slide={activeSlide} {editable} />
       </div>
     {:else}
       <div class="no-slide">No slide selected</div>

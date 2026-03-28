@@ -32,6 +32,33 @@ export const api = {
   getDeck: (id: string) => request<{ deck: any; access: string }>(`/api/decks/${id}`),
   deleteDeck: (id: string) => request(`/api/decks/${id}`, { method: 'DELETE' }),
 
+  // Sharing
+  shareDeck: (id: string, data: { email: string; role: 'editor' | 'viewer' }) =>
+    request(`/api/decks/${id}/share`, { method: 'POST', body: JSON.stringify(data) }),
+  removeDeckShare: (id: string, userId: string) =>
+    request(`/api/decks/${id}/share/${userId}`, { method: 'DELETE' }),
+  getCollaborators: (id: string) =>
+    request<{ collaborators: any[] }>(`/api/decks/${id}/collaborators`),
+
+  // Locking
+  acquireLock: async (id: string): Promise<{ locked: boolean; by?: string; lockedBy?: { name: string; since: string } }> => {
+    const res = await fetch(`${API_URL}/api/decks/${id}/lock`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    // 409 is an expected response (locked by someone else), not an error
+    if (res.ok || res.status === 409) {
+      return res.json()
+    }
+    const body = await res.json().catch(() => ({ error: res.statusText }))
+    throw new Error(body.error ?? `Request failed: ${res.status}`)
+  },
+  releaseLock: (id: string) =>
+    request(`/api/decks/${id}/lock`, { method: 'DELETE' }),
+  refreshLock: (id: string) =>
+    request(`/api/decks/${id}/lock/heartbeat`, { method: 'POST' }),
+
   // Admin
   listUsers: (status?: string) =>
     request<{ users: any[] }>(`/api/admin/users${status ? `?status=${status}` : ''}`),

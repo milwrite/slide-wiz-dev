@@ -1,7 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
 
-  let { deck, ondelete }: { deck: any; ondelete: (id: string) => void } = $props();
+  let { deck, ondelete, onshare }: { deck: any; ondelete: (id: string) => void; onshare?: (id: string) => void } = $props();
 
   let confirming = $state(false);
 
@@ -51,6 +51,14 @@
       {/if}
     </p>
   </div>
+  {#if onshare}
+    <button
+      class="share-btn"
+      onclick={(e) => { e.stopPropagation(); onshare(deck.id); }}
+      type="button"
+      title="Share deck"
+    >&#x1F517;</button>
+  {/if}
   <button
     class="delete-btn"
     class:confirming
@@ -140,6 +148,32 @@
     background: #fef2f2;
     color: var(--color-error);
     border-color: #fecaca;
+  }
+
+  .share-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 3.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s, background 0.15s;
+    font-family: var(--font-body);
+    color: var(--color-text-secondary);
+  }
+
+  .deck-card:hover .share-btn {
+    opacity: 1;
+  }
+
+  .share-btn:hover {
+    background: #eff6ff;
+    color: var(--color-primary);
+    border-color: #93c5fd;
   }
 
   .delete-btn.confirming {

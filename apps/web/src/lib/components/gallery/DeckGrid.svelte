@@ -1,7 +1,7 @@
 <script lang="ts">
   import DeckCard from './DeckCard.svelte';
 
-  let { decks, ondelete }: { decks: any[]; ondelete: (id: string) => void } = $props();
+  let { decks, ondelete, onshare }: { decks: any[]; ondelete: (id: string) => void; onshare?: (id: string) => void } = $props();
 </script>
 
 {#if decks.length === 0}
@@ -12,7 +12,7 @@
 {:else}
   <div class="deck-grid">
     {#each decks as deck (deck.id)}
-      <DeckCard {deck} {ondelete} />
+      <DeckCard {deck} {ondelete} {onshare} />
     {/each}
   </div>
 {/if}
