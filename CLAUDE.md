@@ -114,15 +114,18 @@ Key mutations:
 System prompt at `apps/api/src/prompts/system.ts` — includes deck state, templates, theme, and **uploaded file URLs** so AI can reference them in image modules. The AI does NOT have web access — it directs users to `/search` command for web images.
 
 ### Web Search (Tavily)
+- `/search <query>` in chat — searches web, auto-downloads first image, inserts into active slide
 - `POST /api/search` — searches the web via Tavily API, returns results + image URLs
 - `POST /api/search/download-image` — downloads an image from a URL and saves it as an uploaded file
 - Content filtered: inappropriate domains blocked from search and download
 - Tavily API key in `.env` as `TAVILY_API_KEY`
+- The AI does NOT have web access — tell users to use `/search` for web images
 
 ### File Uploads
-- Upload via Files tab or drag into chat input (chat drag only uploads, doesn't auto-insert)
-- Stored at `apps/api/uploads/{deckId}/{fileId}{ext}`
+- Upload via Files tab, drag into chat input, or `/search` auto-download
+- Stored at `apps/api/uploads/{deckId}/{fileId}{ext}` (symlinked to `/data/slide-maker-storage/uploads/`)
 - Served at `/api/decks/:deckId/files/:fileId` (no auth, cached)
+- File paths in DB may be absolute or relative — serve handler resolves both via `path.isAbsolute()` check
 - `ImageModule` auto-prefixes `API_URL` for paths starting with `/api/`
 - Export rewrites API URLs to local `assets/` paths in zip
 
@@ -209,11 +212,20 @@ Push schema changes: `pnpm db:push` (runs `drizzle-kit push` from `apps/api/`).
 - CSP + security headers via `apps/web/src/hooks.server.ts`
 - DOMPurify on all user HTML content in renderers
 - sanitize-html on API export renderer
-- CSRF middleware on API
+- CSRF middleware on API (`hono/csrf`)
+- Body limit: 11MB for file upload routes, 2MB for everything else
+- Rate limiting via `rate-limiter-flexible` (`apps/api/src/middleware/rate-limit.ts`):
+  - Login: 5 attempts per 15 minutes
+  - Registration: 3 per hour
+  - Chat: 30 messages per minute
 - Server-side admin guard (`apps/web/src/routes/(app)/admin/+page.server.ts`)
+- Block ownership verification on CRUD endpoints
+- Export path traversal guard (`path.basename()`)
 - Link URL validation (https only)
 - Content filtering on web search (blocked domains)
 - Security audit: `docs/security-audit-2026-03-28.md`
+
+**Do not revert security changes in:** `decks.ts`, `files.ts`, `chat.ts`, `auth.ts`, `index.ts`, `export/index.ts`, `export/html-renderer.ts`, `lucia.ts`
 
 ## Known Issues / Tech Debt
 
@@ -224,4 +236,4 @@ Push schema changes: `pnpm db:push` (runs `drizzle-kit push` from `apps/api/`).
 - No real-time collaborative editing — uses pessimistic locking (5-min TTL with heartbeat).
 - Font size in format toolbar applies to entire editor DOM, not per-selection (needs TipTap TextStyle extension).
 - `adapter-auto` warning on build — could switch to `adapter-node` for production.
-- `/search` command not yet wired into chat UI (API works, needs frontend `/search` trigger like `/add`).
+- Email verification (SMTP) not configured on staging — admin must manually approve users.
