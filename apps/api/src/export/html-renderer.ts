@@ -1,3 +1,4 @@
+import sanitizeHtml from 'sanitize-html'
 import { NAVIGATION_JS } from './navigation.js'
 import { CAROUSEL_JS } from './carousel.js'
 
@@ -8,6 +9,22 @@ function esc(str: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+const SAFE_HTML_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'h3', 'h4', 'figure', 'figcaption', 'img', 'pre', 'code', 'span', 'br']),
+  allowedAttributes: {
+    ...sanitizeHtml.defaults.allowedAttributes,
+    img: ['src', 'alt', 'loading'],
+    a: ['href', 'target', 'rel'],
+    code: ['class'],
+    span: ['class'],
+  },
+  allowedSchemes: ['http', 'https', 'mailto'],
+}
+
+function sanitize(html: string): string {
+  return sanitizeHtml(html, SAFE_HTML_OPTIONS)
 }
 
 // ── Types ───────────────────────────────────────────────────────────
@@ -67,7 +84,7 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
     case 'text': {
       const content = String(d.html || d.content || d.text || '')
       // If data.html exists, trust it as pre-rendered HTML; otherwise escape
-      const body = d.html ? content : esc(content)
+      const body = d.html ? sanitize(content) : esc(content)
       const cls = mod.stepOrder != null ? 'text-body step-hidden' : 'text-body'
       const ds = mod.stepOrder != null ? ` data-step="${mod.stepOrder}"` : ''
       return `<div class="${cls}"${ds}>${body}</div>`
@@ -177,7 +194,8 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
     }
 
     case 'artifact': {
-      const src = String(d.src || d.url || '')
+      const rawSrc = String(d.src || d.url || '')
+      const src = /^https?:\/\//i.test(rawSrc) ? rawSrc : ''
       const width = String(d.width || '100%')
       const height = String(d.height || '400px')
       const alt = esc(String(d.alt || 'Interactive visualization'))

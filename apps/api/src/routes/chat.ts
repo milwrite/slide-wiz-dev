@@ -130,12 +130,17 @@ chat.post('/', async (c) => {
   })
 
   // Prepare messages for the LLM
-  const chatHistory: { role: 'user' | 'assistant'; content: string }[] = Array.isArray(history)
-    ? history.map((h: { role: string; content: string }) => ({
-        role: h.role as 'user' | 'assistant',
-        content: h.content,
-      }))
-    : []
+  // Reconstruct chat history server-side from DB (never trust client-supplied history)
+  const dbMessages = await db
+    .select()
+    .from(chatMessages)
+    .where(eq(chatMessages.deckId, deckId))
+    .orderBy(chatMessages.createdAt)
+
+  const chatHistory: { role: 'user' | 'assistant'; content: string }[] = dbMessages.map((m) => ({
+    role: m.role as 'user' | 'assistant',
+    content: m.content,
+  }))
 
   chatHistory.push({ role: 'user', content: message })
 
@@ -183,7 +188,8 @@ chat.post('/', async (c) => {
         createdAt: new Date(),
       })
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown streaming error'
+      console.error('AI streaming error:', err)
+      const errorMessage = 'An error occurred while generating the response'
       await stream.writeSSE({
         data: JSON.stringify({ type: 'error', message: errorMessage }),
       })

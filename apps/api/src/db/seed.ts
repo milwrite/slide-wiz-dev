@@ -374,9 +374,15 @@ Object.entries(states).forEach(([abbr,d])=>{
 }
 
 async function seedAdminUsers() {
+  const adminPassword = process.env.ADMIN_SEED_PASSWORD
+  if (!adminPassword) {
+    console.log('Skipping admin seed: ADMIN_SEED_PASSWORD env var not set')
+    return
+  }
+
   const admins = [
-    { email: 'smorello@gc.cuny.edu', password: 'Gremlins2025!', name: 'Stefano Morello' },
-    { email: 'zmuhlbauer@gc.cuny.edu', password: 'Gremlins2025!', name: 'Zach Muhlbauer' },
+    { email: 'smorello@gc.cuny.edu', password: adminPassword, name: 'Stefano Morello' },
+    { email: 'zmuhlbauer@gc.cuny.edu', password: adminPassword, name: 'Zach Muhlbauer' },
   ]
 
   for (const admin of admins) {

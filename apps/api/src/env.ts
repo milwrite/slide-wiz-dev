@@ -15,3 +15,7 @@ export const env = {
   openrouterApiKey: process.env.OPENROUTER_API_KEY ?? '',
   publicUrl: process.env.PUBLIC_URL ?? 'http://localhost:5173',
 } as const
+
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
+  throw new Error('SESSION_SECRET must be set in production')
+}

@@ -1,6 +1,8 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { bodyLimit } from 'hono/body-limit'
+import { csrf } from 'hono/csrf'
 import { env } from './env.js'
 import auth from './routes/auth.js'
 import admin from './routes/admin.js'
@@ -19,6 +21,9 @@ app.use('/*', cors({
   origin: env.publicUrl,
   credentials: true,
 }))
+
+app.use('/*', csrf({ origin: env.publicUrl }))
+app.use('/*', bodyLimit({ maxSize: 2 * 1024 * 1024 }))
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 

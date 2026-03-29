@@ -82,7 +82,7 @@ export async function exportDeckAsZip(
       for (const file of files) {
         const filePath = path.join(UPLOAD_DIR, file.path)
         if (fs.existsSync(filePath)) {
-          archive.file(filePath, { name: `${slug}/assets/${file.filename}` })
+          archive.file(filePath, { name: `${slug}/assets/${path.basename(file.filename)}` })
         }
       }
     }

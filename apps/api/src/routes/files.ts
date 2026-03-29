@@ -116,6 +116,17 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
 filesRouter.get('/:deckId/files', authMiddleware, async (c) => {
   const deckId = c.req.param('deckId')!
 
+  const user = c.get('user')
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access) {
+    return c.json({ error: 'Not found or no access' }, 404)
+  }
+
   const files = await db
     .select()
     .from(uploadedFiles)
@@ -153,6 +164,10 @@ filesRouter.get('/:deckId/files/:fileId', async (c) => {
 
   const data = fs.readFileSync(file.path)
   c.header('Content-Type', file.mimeType)
+  // Force download for SVG to prevent script execution
+  if (file.mimeType === 'image/svg+xml') {
+    c.header('Content-Disposition', `attachment; filename="${file.filename}"`)
+  }
   c.header('Cache-Control', 'public, max-age=86400')
   return c.body(data)
 })

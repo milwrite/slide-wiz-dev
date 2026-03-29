@@ -19,11 +19,12 @@
   // Build iframe src: prefer rawSource with config injected, fallback to src/url
   let iframeSrc = $derived.by(() => {
     if (data.rawSource) {
-      // If there's a raw source, build a blob URL from it
       const blob = new Blob([data.rawSource], { type: 'text/html' })
       return URL.createObjectURL(blob)
     }
-    return data.src || data.url || ''
+    const src = data.src || data.url || ''
+    // Only allow http(s) and blob URLs to prevent javascript: and data: injection
+    return /^(https?:\/\/|blob:)/i.test(src) ? src : ''
   })
 </script>
 
