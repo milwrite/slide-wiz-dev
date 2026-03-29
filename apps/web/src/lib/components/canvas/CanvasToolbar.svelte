@@ -5,12 +5,13 @@
   import { activeSlideId } from '$lib/stores/ui'
   import { API_URL } from '$lib/api'
 
+  type CanvasMode = 'edit' | 'view' | 'preview'
   let {
-    editMode = false,
-    onToggleEdit,
+    canvasMode = 'view' as CanvasMode,
+    onSetMode,
   }: {
-    editMode?: boolean
-    onToggleEdit?: () => void
+    canvasMode?: CanvasMode
+    onSetMode?: (mode: CanvasMode) => void
   } = $props()
 
   let slides = $derived($currentDeck?.slides ?? [])
@@ -103,14 +104,32 @@
     </button>
   </div>
   <div class="toolbar-right">
-    <button
-      class="mode-toggle-btn"
-      class:active={editMode}
-      onclick={onToggleEdit}
-      title={editMode ? 'Switch to preview mode' : 'Switch to edit mode'}
-    >
-      {editMode ? 'Preview' : 'Edit'}
-    </button>
+    <div class="mode-switcher">
+      <button
+        class="mode-btn"
+        class:active={canvasMode === 'edit'}
+        onclick={() => onSetMode?.('edit')}
+        title="Edit slide content"
+      >
+        Edit
+      </button>
+      <button
+        class="mode-btn"
+        class:active={canvasMode === 'view'}
+        onclick={() => onSetMode?.('view')}
+        title="View slide"
+      >
+        View
+      </button>
+      <button
+        class="mode-btn"
+        class:active={canvasMode === 'preview'}
+        onclick={() => onSetMode?.('preview')}
+        title="Preview full deck as webpage"
+      >
+        Preview
+      </button>
+    </div>
     <div class="branding-wrapper">
       <button class="branding-btn" onclick={() => { showBranding = !showBranding }} title="Branding / Logo">
         Logo
@@ -133,16 +152,6 @@
         </div>
       {/if}
     </div>
-    <button
-      class="preview-btn"
-      onclick={() => {
-        if (!$currentDeck) return
-        window.open(`${API_URL}/api/decks/${$currentDeck.id}/preview`, '_blank')
-      }}
-      disabled={!$currentDeck}
-    >
-      Preview
-    </button>
     <button class="export-btn" onclick={handleExport} disabled={exporting || !$currentDeck}>
       {exporting ? 'Exporting...' : 'Export ZIP'}
     </button>
@@ -282,24 +291,6 @@
     cursor: pointer;
   }
   .branding-save:hover { opacity: 0.9; }
-  .preview-btn {
-    background: var(--color-primary, #3b82f6);
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 0.35rem 0.75rem;
-    font-size: 0.8rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: opacity 0.15s;
-  }
-  .preview-btn:hover:not(:disabled) {
-    opacity: 0.9;
-  }
-  .preview-btn:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
   .export-btn {
     background: var(--color-success);
     color: white;
@@ -318,27 +309,31 @@
     opacity: 0.5;
     cursor: default;
   }
-  .mode-toggle-btn {
-    background: transparent;
+  .mode-switcher {
+    display: flex;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .mode-btn {
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--color-border);
     padding: 0.35rem 0.65rem;
     font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
     color: var(--color-text-secondary);
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
+    transition: background 0.15s, color 0.15s;
   }
-  .mode-toggle-btn:hover {
+  .mode-btn:last-child {
+    border-right: none;
+  }
+  .mode-btn:hover:not(.active) {
     background: var(--color-bg-tertiary);
-    border-color: var(--color-text-muted);
   }
-  .mode-toggle-btn.active {
+  .mode-btn.active {
     background: var(--color-primary, #3b82f6);
     color: white;
-    border-color: var(--color-primary, #3b82f6);
-  }
-  .mode-toggle-btn.active:hover {
-    opacity: 0.9;
   }
 </style>

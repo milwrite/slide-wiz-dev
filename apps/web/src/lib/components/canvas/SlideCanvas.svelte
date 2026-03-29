@@ -1,5 +1,6 @@
 <script lang="ts">
   import '$lib/framework-preview.css'
+  import { API_URL } from '$lib/api'
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
   import { activeTheme, ensureThemesLoaded, isDark } from '$lib/stores/themes'
@@ -15,8 +16,9 @@
     $currentDeck?.slides.find((s) => s.id === $activeSlideId) ?? null
   )
 
-  // Toggle between iframe preview mode and Svelte edit mode
-  let editMode = $state(false)
+  // Three-stage canvas mode: edit → view → preview
+  type CanvasMode = 'edit' | 'view' | 'preview'
+  let canvasMode: CanvasMode = $state('view')
 
   // Track the active TipTap editor for the format toolbar
   let activeEditor: Editor | null = $state(null)
@@ -44,27 +46,31 @@
     return renderSlideHtml(activeSlide, theme)
   })
 
-  // Switch back to preview when changing slides
+  // Preview URL for full deck preview
+  let previewUrl = $derived(
+    $currentDeck ? `${API_URL}/api/decks/${$currentDeck.id}/preview` : ''
+  )
+
+  // Switch back to view when changing slides (unless in preview mode)
   $effect(() => {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     $activeSlideId
-    editMode = false
-    activeEditor = null
+    if (canvasMode === 'edit') {
+      canvasMode = 'view'
+      activeEditor = null
+    }
   })
 
-  function enterEditMode() {
-    if (!editable) return
-    editMode = true
-  }
-
-  function exitEditMode() {
-    editMode = false
-    activeEditor = null
+  function setMode(mode: CanvasMode) {
+    if (mode === 'edit' && !editable) return
+    canvasMode = mode
+    if (mode !== 'edit') activeEditor = null
   }
 
   function handleCanvasKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && editMode) {
-      exitEditMode()
+    if (e.key === 'Escape') {
+      if (canvasMode === 'edit') setMode('view')
+      else if (canvasMode === 'preview') setMode('view')
     }
   }
 
@@ -104,13 +110,24 @@
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="slide-canvas" onkeydown={handleCanvasKeydown}>
-  <CanvasToolbar {editMode} onToggleEdit={() => { editMode ? exitEditMode() : enterEditMode() }} />
-  {#if editable && editMode}
+  <CanvasToolbar {canvasMode} onSetMode={setMode} />
+  {#if editable && canvasMode === 'edit'}
     <FormatToolbar editor={activeEditor} />
   {/if}
   <div class="canvas-area">
-    {#if activeSlide}
-      {#if editMode}
+    {#if canvasMode === 'preview'}
+      <div class="preview-container fullscreen-preview">
+        {#key previewUrl}
+        <iframe
+          class="slide-preview-frame"
+          src={previewUrl}
+          sandbox="allow-same-origin allow-scripts"
+          title="Deck preview"
+        ></iframe>
+        {/key}
+      </div>
+    {:else if activeSlide}
+      {#if canvasMode === 'edit'}
         <div class="slide-frame" style={themeStyle}>
           <SlideRenderer slide={activeSlide} {editable} onEditorReady={handleEditorReady} />
         </div>
@@ -126,7 +143,7 @@
           {/key}
           {#if editable}
             <!-- svelte-ignore a11y_no_static_element_interactions -->
-            <div class="click-overlay" ondblclick={enterEditMode}></div>
+            <div class="click-overlay" ondblclick={() => setMode('edit')}></div>
             <div class="edit-hint">Double-click to edit</div>
           {/if}
         </div>
@@ -203,6 +220,13 @@
     border-radius: var(--radius-md);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+  }
+  .fullscreen-preview {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    aspect-ratio: auto;
+    cursor: default;
   }
   .no-slide {
     color: var(--color-text-muted);
