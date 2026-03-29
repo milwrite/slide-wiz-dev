@@ -306,6 +306,8 @@ export function renderDeckHtml(
   const primaryText = isDarkPrimary ? '#ffffff' : '#1a1a2e'
   const cardBg = isDarkBg ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'
   const border = isDarkBg ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const splitBg = isDarkBg ? '#172a45' : '#e8eef6'
+  const gridBg = isDarkBg ? '#0f3444' : '#e9f5f7'
 
   const themeCss = `
     :root {
@@ -320,14 +322,16 @@ export function renderDeckHtml(
       --theme-body-font: '${bodyFont}';
       --theme-card-bg: ${cardBg};
       --theme-border: ${border};
+      --layout-split-bg: ${splitBg};
+      --layout-grid-bg: ${gridBg};
     }
     html, body { background: ${bg}; color: ${text}; font-family: '${bodyFont}', sans-serif; }
     h1, h2, h3, h4 { font-family: '${headingFont}', sans-serif; }
     .title-slide, .layout-divider, .closing-slide { background: ${primary}; color: ${primaryText}; }
     .card { background: ${cardBg}; border-color: ${border}; }
     .card-cyan { border-left-color: ${accent}; }
-    .label-cyan { background: ${accent}1a; color: ${accent}; }
-    .label-blue { background: ${secondary}1a; color: ${secondary}; }
+    .label-cyan { color: ${accent}; }
+    .label-blue { color: ${secondary}; }
     .tip-box { background: ${accent}0d; border-color: ${accent}1f; }
     .tip-box strong { color: ${accent}; }
     .stream-list li { border-left-color: ${accent}; background: ${cardBg}; color: ${textMuted}; }

@@ -79,11 +79,12 @@ function renderModule(mod: Module): string {
     }
 
     case 'text': {
-      const content = String(d.html || d.content || d.text || '')
-      // If data.html exists, trust it as pre-rendered HTML; otherwise escape
-      // Always escape — data.html from TipTap/AI is not trusted in srcdoc context
-      const body = esc(content)
-      return `<div class="text-body">${body}</div>`
+      // data.html is TipTap-generated structured HTML — render it directly
+      // (iframe is sandboxed; DOMPurify sanitizes on the renderer/export side)
+      if (d.html) return `<div class="text-body">${String(d.html)}</div>`
+      // Fallback: plain text or markdown-ish content — escape it
+      const content = String(d.content || d.text || '')
+      return `<div class="text-body">${esc(content)}</div>`
     }
 
     case 'card': {
@@ -252,8 +253,8 @@ function buildThemeCss(theme: Theme | null | undefined): string {
     }
     .card-cyan { border-left-color: ${accent}; }
     .card-navy { border-left-color: ${primary}; }
-    .label-cyan { background: ${accent}1a; color: ${accent}; }
-    .label-blue { background: ${secondary}1a; color: ${secondary}; }
+    .label-cyan { color: ${accent}; }
+    .label-blue { color: ${secondary}; }
     .stream-list li { border-left-color: ${accent}; background: ${cardBg}; color: ${textMuted}; }
     .comparison-panel { background: ${cardBg}; border-color: ${border}; color: ${textMuted}; }
     .flow-node { background: ${cardBg}; border-color: ${border}; }

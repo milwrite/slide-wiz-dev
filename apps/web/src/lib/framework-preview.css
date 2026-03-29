@@ -18,10 +18,19 @@
 }
 
 /* ── Override slide backgrounds per layout ────────────────────────── */
-.slide-frame .slide[data-layout="layout-split"],
-.slide-frame .slide[data-layout="layout-content"],
-.slide-frame .slide[data-layout="layout-grid"] {
+/* Neutral default for full-content */
+.slide-frame .slide[data-layout="layout-content"] {
   background: var(--theme-bg, #111827) !important;
+  color: var(--theme-text, #f0f0f0) !important;
+}
+
+/* Complementary, minimalist hues for split/grid */
+.slide-frame .slide[data-layout="layout-split"] {
+  background: var(--layout-split-bg, #172a45) !important; /* theme-aware */
+  color: var(--theme-text, #f0f0f0) !important;
+}
+.slide-frame .slide[data-layout="layout-grid"] {
+  background: var(--layout-grid-bg, #0f3444) !important; /* theme-aware */
   color: var(--theme-text, #f0f0f0) !important;
 }
 
@@ -112,7 +121,7 @@
 }
 .slide-frame .tiptap p { color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important; }
 .slide-frame .tiptap strong { color: var(--theme-text, #f0f0f0) !important; }
-.slide-frame .tiptap a { color: var(--theme-accent, #64b5f6) !important; }
+.slide-frame .tiptap a { color: var(--theme-accent, #64b5f6) !important; text-decoration: underline !important; text-underline-offset: 2px !important; }
 
 /* ── Module: Card ────────────────────────────────────────────────── */
 .slide-frame .card {
@@ -134,19 +143,20 @@
 
 /* ── Module: Label ───────────────────────────────────────────────── */
 .slide-frame .label {
-  padding: 4px 12px !important;
-  border-radius: 999px !important;
+  padding: 0 !important;
+  background: none !important;
+  border-radius: 0 !important;
   font-size: 0.75rem !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
-  letter-spacing: 0.06em !important;
+  letter-spacing: 0.08em !important;
 }
-.slide-frame .label-cyan { background: color-mix(in srgb, var(--theme-accent, #64b5f6) 15%, transparent) !important; color: var(--theme-accent, #64b5f6) !important; }
-.slide-frame .label-blue { background: color-mix(in srgb, var(--theme-secondary, #3b82f6) 15%, transparent) !important; color: var(--theme-secondary, #3b82f6) !important; }
-.slide-frame .label-navy { background: color-mix(in srgb, var(--theme-primary, #1e3a5f) 20%, transparent) !important; color: color-mix(in srgb, var(--theme-primary, #1e3a5f) 60%, white) !important; }
-.slide-frame .label-red { background: rgba(248,113,113,0.1) !important; color: var(--accent-red) !important; }
-.slide-frame .label-amber { background: rgba(251,191,36,0.1) !important; color: var(--accent-amber) !important; }
-.slide-frame .label-green { background: rgba(110,231,183,0.1) !important; color: var(--accent-green) !important; }
+.slide-frame .label-cyan { color: var(--theme-accent, #64b5f6) !important; }
+.slide-frame .label-blue { color: var(--theme-secondary, #3b82f6) !important; }
+.slide-frame .label-navy { color: color-mix(in srgb, var(--theme-primary, #1e3a5f) 60%, white) !important; }
+.slide-frame .label-red { color: var(--accent-red) !important; }
+.slide-frame .label-amber { color: var(--accent-amber) !important; }
+.slide-frame .label-green { color: var(--accent-green) !important; }
 
 /* ── Module: Tip Box ─────────────────────────────────────────────── */
 .slide-frame .tip-box {

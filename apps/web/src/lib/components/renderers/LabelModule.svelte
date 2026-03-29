@@ -30,39 +30,22 @@
 <style>
   .label {
     display: inline-block;
-    font-size: clamp(0.6rem, 1vw, 0.8rem);
-    font-weight: 700;
+    font-size: clamp(0.6rem, 1vw, 0.75rem);
+    font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 0.15rem 0.6rem;
-    border-radius: 3px;
+    letter-spacing: 0.08em;
+    padding: 0;
+    background: none;
+    border-radius: 0;
     outline: none;
     font-family: var(--font-body);
   }
-  .label-cyan {
-    background: rgba(121, 192, 255, 0.15);
-    color: #79c0ff;
-  }
-  .label-blue {
-    background: rgba(59, 115, 230, 0.15);
-    color: var(--blue, #3B73E6);
-  }
-  .label-navy {
-    background: rgba(29, 58, 131, 0.15);
-    color: var(--navy, #1D3A83);
-  }
-  .label-red {
-    background: rgba(255, 107, 107, 0.15);
-    color: #ff6b6b;
-  }
-  .label-amber {
-    background: rgba(255, 217, 61, 0.15);
-    color: #d4a017;
-  }
-  .label-green {
-    background: rgba(107, 207, 127, 0.15);
-    color: #2d8a4e;
-  }
+  .label-cyan { color: #79c0ff; }
+  .label-blue { color: var(--blue, #3B73E6); }
+  .label-navy { color: var(--navy, #1D3A83); }
+  .label-red { color: #ff6b6b; }
+  .label-amber { color: #d4a017; }
+  .label-green { color: #2d8a4e; }
   .label[contenteditable="true"]:focus {
     outline: 1px dashed var(--color-primary);
     outline-offset: 2px;

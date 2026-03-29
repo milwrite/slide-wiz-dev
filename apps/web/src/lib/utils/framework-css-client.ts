@@ -101,15 +101,15 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 
 /* ── Module: Label ───────────────────────────────────────────────── */
 .label {
-  display: inline-block; padding: 4px 12px; border-radius: 999px;
-  font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+  display: inline-block; padding: 0; background: none; border-radius: 0;
+  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
 }
-.label-cyan { background: rgba(100,181,246,0.1); color: var(--accent-cyan); }
-.label-blue { background: rgba(59,130,246,0.1); color: var(--accent-blue); }
-.label-navy { background: rgba(30,58,95,0.2); color: #7b9fd4; }
-.label-red { background: rgba(248,113,113,0.1); color: var(--accent-red); }
-.label-amber { background: rgba(251,191,36,0.1); color: var(--accent-amber); }
-.label-green { background: rgba(110,231,183,0.1); color: var(--accent-green); }
+.label-cyan { color: var(--accent-cyan); }
+.label-blue { color: var(--accent-blue); }
+.label-navy { color: #7b9fd4; }
+.label-red { color: var(--accent-red); }
+.label-amber { color: var(--accent-amber); }
+.label-green { color: var(--accent-green); }
 
 /* ── Module: Tip Box ─────────────────────────────────────────────── */
 .tip-box {

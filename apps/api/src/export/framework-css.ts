@@ -54,7 +54,10 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 }
 
 /* ── Layout: Split ───────────────────────────────────────────────── */
-.layout-split { flex-direction: row; gap: 40px; align-items: stretch; }
+.layout-split {
+  background: var(--layout-split-bg, #172a45); /* theme-aware */
+  flex-direction: row; gap: 40px; align-items: stretch;
+}
 .layout-split > .content { flex: 0.45; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
 .layout-split > .stage {
   flex: 0.55; display: flex; flex-direction: column; justify-content: center;
@@ -67,7 +70,10 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 .layout-content > .content { max-width: 900px; width: 100%; }
 
 /* ── Layout: Grid ────────────────────────────────────────────────── */
-.layout-grid { align-items: center; gap: 24px; }
+.layout-grid {
+  background: var(--layout-grid-bg, #0f3444); /* theme-aware */
+  align-items: center; gap: 24px;
+}
 
 /* ── Layout: Full Dark ───────────────────────────────────────────── */
 .layout-full-dark { background: #0d1117; align-items: center; justify-content: center; gap: 24px; }
@@ -96,15 +102,15 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 
 /* ── Module: Label ───────────────────────────────────────────────── */
 .label {
-  display: inline-block; padding: 4px 12px; border-radius: 999px;
-  font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+  display: inline-block; padding: 0; background: none; border-radius: 0;
+  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
 }
-.label-cyan { background: rgba(100,181,246,0.1); color: var(--accent-cyan); }
-.label-blue { background: rgba(59,130,246,0.1); color: var(--accent-blue); }
-.label-navy { background: rgba(30,58,95,0.2); color: #7b9fd4; }
-.label-red { background: rgba(248,113,113,0.1); color: var(--accent-red); }
-.label-amber { background: rgba(251,191,36,0.1); color: var(--accent-amber); }
-.label-green { background: rgba(110,231,183,0.1); color: var(--accent-green); }
+.label-cyan { color: var(--accent-cyan); }
+.label-blue { color: var(--accent-blue); }
+.label-navy { color: #7b9fd4; }
+.label-red { color: var(--accent-red); }
+.label-amber { color: var(--accent-amber); }
+.label-green { color: var(--accent-green); }
 
 /* ── Module: Tip Box ─────────────────────────────────────────────── */
 .tip-box {
@@ -258,4 +264,12 @@ blockquote cite { display: block; margin-top: 8px; font-size: 0.85rem; color: va
   #nav-bar, .skip-link { display: none !important; }
   body { overflow: visible; background: #fff; color: #111; }
 }
+
+/* ── Reduced Motion ─────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
 `
+/* ── Links (accessible) ─────────────────────────────────────────── */
+a { color: var(--accent-cyan); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
