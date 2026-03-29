@@ -39,7 +39,7 @@
 
   let Renderer = $derived(rendererMap[module.type] ?? null)
 
-  // Delete confirmation
+  // Delete
   let confirmDelete = $state(false)
   function handleDelete() {
     if (confirmDelete) {
@@ -51,15 +51,42 @@
     }
   }
 
-  // Size control (S/M/L)
-  type ModuleSize = 'auto' | 'sm' | 'md' | 'lg'
-  let moduleSize = $state<ModuleSize>('auto')
+  // Corner resize — sets custom dimensions, triggers CSS scale-down
+  let wrapperEl: HTMLDivElement | undefined = $state()
+  let customW = $state<number | null>(null)
+  let customH = $state<number | null>(null)
+  let resizing = $state(false)
+  let scaleFactor = $state(1)
 
-  const sizeMap: Record<ModuleSize, string | undefined> = {
-    auto: undefined,
-    sm: '60px',
-    md: '120px',
-    lg: '240px',
+  function startResize(e: MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    resizing = true
+    const startX = e.clientX
+    const startY = e.clientY
+    const rect = wrapperEl!.getBoundingClientRect()
+    const startW = rect.width
+    const startH = rect.height
+    const naturalW = wrapperEl!.scrollWidth
+    const naturalH = wrapperEl!.scrollHeight
+
+    function onMove(ev: MouseEvent) {
+      const newW = Math.max(60, startW + (ev.clientX - startX))
+      const newH = Math.max(30, startH + (ev.clientY - startY))
+      customW = newW
+      customH = newH
+      // Scale content to fit the new size
+      const scaleX = newW / Math.max(naturalW, 1)
+      const scaleY = newH / Math.max(naturalH, 1)
+      scaleFactor = Math.min(scaleX, scaleY, 1) // Never scale up, only down
+    }
+    function onUp() {
+      resizing = false
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
   }
 </script>
 
@@ -67,24 +94,15 @@
   class="module-wrapper"
   class:editable
   class:is-step={module.stepOrder != null}
-  style:max-height={sizeMap[moduleSize]}
-  style:overflow={moduleSize !== 'auto' ? 'hidden' : undefined}
+  class:resizing
+  bind:this={wrapperEl}
+  style:width={customW ? `${customW}px` : undefined}
+  style:height={customH ? `${customH}px` : undefined}
 >
   {#if editable}
     <div class="module-controls">
-      <select
-        class="size-select"
-        bind:value={moduleSize}
-        title="Module size"
-        onclick={(e) => e.stopPropagation()}
-      >
-        <option value="auto">Auto</option>
-        <option value="sm">S</option>
-        <option value="md">M</option>
-        <option value="lg">L</option>
-      </select>
       <button
-        class="delete-btn"
+        class="ctrl-btn delete-btn"
         class:confirming={confirmDelete}
         onclick={handleDelete}
         title={confirmDelete ? 'Click again to confirm' : 'Delete module'}
@@ -98,10 +116,17 @@
     <span class="step-badge">Step {module.stepOrder + 1}</span>
   {/if}
 
-  {#if Renderer}
-    <Renderer data={module.data} {editable} {onchange} oneditorready={module.type === 'text' ? oneditorready : undefined} />
-  {:else}
-    <div class="unknown-module">Unknown module type: {module.type}</div>
+  <div class="module-content" style:transform={scaleFactor < 1 ? `scale(${scaleFactor})` : undefined} style:transform-origin={scaleFactor < 1 ? 'top left' : undefined}>
+    {#if Renderer}
+      <Renderer data={module.data} {editable} {onchange} oneditorready={module.type === 'text' ? oneditorready : undefined} />
+    {:else}
+      <div class="unknown-module">Unknown: {module.type}</div>
+    {/if}
+  </div>
+
+  {#if editable}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="corner-resize" onmousedown={startResize}></div>
   {/if}
 </div>
 
@@ -109,11 +134,16 @@
   .module-wrapper {
     position: relative;
     width: 100%;
+    overflow: hidden;
   }
   .module-wrapper.editable:hover {
     outline: 1px dashed rgba(59, 115, 230, 0.4);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
+  }
+  .module-wrapper.resizing {
+    user-select: none;
+    outline: 2px solid var(--color-primary) !important;
   }
   .is-step {
     opacity: 0.7;
@@ -130,11 +160,14 @@
     padding: 1px 8px;
     border-radius: 10px;
     font-weight: 600;
-    font-family: var(--font-body);
     z-index: 5;
   }
 
-  /* Controls row (size + delete) */
+  .module-content {
+    width: 100%;
+  }
+
+  /* Controls */
   .module-controls {
     position: absolute;
     top: -8px;
@@ -148,23 +181,7 @@
     display: flex;
   }
 
-  .size-select {
-    height: 18px;
-    padding: 0 2px;
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-    background: rgba(255, 255, 255, 0.9);
-    color: var(--color-text-muted);
-    font-size: 9px;
-    font-family: var(--font-body);
-    cursor: pointer;
-    outline: none;
-  }
-  .size-select:hover {
-    border-color: var(--color-primary);
-  }
-
-  .delete-btn {
+  .ctrl-btn {
     width: auto;
     min-width: 18px;
     height: 18px;
@@ -192,6 +209,35 @@
     border-color: #dc2626;
     padding: 0 6px;
     font-weight: 600;
+  }
+
+  /* Corner resize */
+  .corner-resize {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 14px;
+    height: 14px;
+    cursor: nwse-resize;
+    z-index: 10;
+    display: none;
+  }
+  .corner-resize::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid var(--color-primary);
+    border-bottom: 2px solid var(--color-primary);
+    opacity: 0.5;
+  }
+  .module-wrapper.editable:hover .corner-resize {
+    display: block;
+  }
+  .corner-resize:hover::after {
+    opacity: 1;
   }
 
   .unknown-module {

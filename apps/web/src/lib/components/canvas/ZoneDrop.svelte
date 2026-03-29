@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { dndzone } from 'svelte-dnd-action'
   import ModuleRenderer from '$lib/components/renderers/ModuleRenderer.svelte'
   import ModulePicker from '$lib/components/outline/ModulePicker.svelte'
 
@@ -42,10 +41,13 @@
   let highlightedIds = $state<Set<string>>(new Set())
   let knownIds: Set<string> = new Set()
 
+  // Shift+drag reorder state
+  let draggingId = $state<string | null>(null)
+  let dragOverId = $state<string | null>(null)
+
   $effect(() => {
     items = modules.map((m) => ({ ...m }))
 
-    // Detect newly added modules (non-reactive comparison)
     const currentIds = new Set(modules.map((m) => m.id))
     if (knownIds.size > 0) {
       for (const id of currentIds) {
@@ -60,13 +62,54 @@
     knownIds = currentIds
   })
 
-  function handleConsider(e: CustomEvent<{ items: Module[] }>) {
-    items = e.detail.items
+  // Shift+drag reorder handlers
+  function handleDragStart(e: DragEvent, modId: string) {
+    if (!e.shiftKey) {
+      e.preventDefault() // Don't drag unless shift is held
+      return
+    }
+    draggingId = modId
+    e.dataTransfer!.effectAllowed = 'move'
+    e.dataTransfer!.setData('text/plain', modId)
   }
 
-  function handleFinalize(e: CustomEvent<{ items: Module[] }>) {
-    items = e.detail.items
+  function handleDragOver(e: DragEvent, modId: string) {
+    if (!draggingId) return
+    e.preventDefault()
+    e.dataTransfer!.dropEffect = 'move'
+    dragOverId = modId
+  }
+
+  function handleDragLeave() {
+    dragOverId = null
+  }
+
+  function handleDrop(e: DragEvent, targetId: string) {
+    e.preventDefault()
+    if (!draggingId || draggingId === targetId) {
+      draggingId = null
+      dragOverId = null
+      return
+    }
+
+    const fromIdx = items.findIndex(m => m.id === draggingId)
+    const toIdx = items.findIndex(m => m.id === targetId)
+    if (fromIdx < 0 || toIdx < 0) return
+
+    const reordered = [...items]
+    const [moved] = reordered.splice(fromIdx, 1)
+    reordered.splice(toIdx, 0, moved)
+
+    items = reordered.map((m, i) => ({ ...m, order: i }))
     onReorder?.(zone, items)
+
+    draggingId = null
+    dragOverId = null
+  }
+
+  function handleDragEnd() {
+    draggingId = null
+    dragOverId = null
   }
 
   function togglePicker(e: MouseEvent) {
@@ -74,7 +117,6 @@
       showPicker = false
       return
     }
-    // Position the picker near the button click, but as a fixed overlay
     const btn = e.currentTarget as HTMLElement
     const rect = btn.getBoundingClientRect()
     pickerX = Math.min(rect.left, window.innerWidth - 320)
@@ -84,24 +126,11 @@
 
   function handleModuleAdded() {
     showPicker = false
-    // Trigger a refresh by dispatching - parent will re-fetch
     onReorder?.(zone, items)
   }
-
 </script>
 
-<div
-  class="zone-drop"
-  class:editable
-  use:dndzone={{
-    items,
-    dropTargetStyle: { outline: '2px dashed rgba(59,130,246,0.4)', borderRadius: '4px' },
-    type: 'modules',
-    dragHandleSelector: '.drag-handle',
-  }}
-  onconsider={handleConsider}
-  onfinalize={handleFinalize}
->
+<div class="zone-drop" class:editable>
   {#if items.length === 0}
     <div class="empty-zone">
       {#if editable && deckId && slideId}
@@ -112,10 +141,18 @@
     </div>
   {:else}
     {#each items as mod (mod.id)}
-      <div class="module-item" class:just-added={highlightedIds.has(mod.id)}>
-        {#if editable}
-          <span class="drag-handle" title="Drag to reorder">⠿</span>
-        {/if}
+      <div
+        class="module-item"
+        class:just-added={highlightedIds.has(mod.id)}
+        class:drag-over={dragOverId === mod.id}
+        class:dragging={draggingId === mod.id}
+        draggable={editable ? 'true' : 'false'}
+        ondragstart={(e) => handleDragStart(e, mod.id)}
+        ondragover={(e) => handleDragOver(e, mod.id)}
+        ondragleave={handleDragLeave}
+        ondrop={(e) => handleDrop(e, mod.id)}
+        ondragend={handleDragEnd}
+      >
         <ModuleRenderer
           module={mod}
           {editable}
@@ -153,10 +190,6 @@
     padding: 0.25rem;
   }
 
-  .zone-drop.editable {
-    border-radius: var(--radius-sm, 4px);
-  }
-
   .empty-zone {
     display: flex;
     flex-direction: column;
@@ -189,35 +222,21 @@
     font-size: 0.75rem;
     color: inherit;
     word-break: break-all;
-    cursor: default;
-    transition: background 0.15s ease;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    border: 2px solid transparent;
   }
 
   .module-item:hover {
     background: rgba(255, 255, 255, 0.14);
   }
 
-  .module-item .drag-handle {
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    font-size: 12px;
-    color: var(--color-text-muted);
-    cursor: grab;
-    z-index: 15;
-    display: none;
-    user-select: none;
-    line-height: 1;
-    padding: 2px 3px;
-    background: rgba(255,255,255,0.9);
-    border-radius: 3px;
+  .module-item.dragging {
+    opacity: 0.4;
   }
-  .module-item:hover .drag-handle {
-    display: block;
-  }
-  .module-item .drag-handle:active {
-    cursor: grabbing;
-    color: var(--color-primary);
+
+  .module-item.drag-over {
+    border-color: var(--color-primary, #3b82f6);
+    background: rgba(59, 130, 246, 0.1);
   }
 
   .module-item.just-added {
