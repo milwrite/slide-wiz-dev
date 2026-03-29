@@ -43,7 +43,8 @@
       })
 
       if (res.ok) {
-        const slide = await res.json()
+        const result = await res.json()
+        const slide = { ...result, blocks: result.blocks || result.modules || [] }
         addSlideToDeck(slide)
         activeSlideId.set(slide.id)
         onAdd?.()
