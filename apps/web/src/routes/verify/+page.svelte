@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { api } from '$lib/api';
   import { page } from '$app/stores';
 
@@ -40,7 +41,7 @@
         <p class="status-text">Verifying your email...</p>
       {:else if status === 'success'}
         <div class="success-message">{message}</div>
-        <a href="/login" class="link">Go to Sign In</a>
+        <a href="{base}/login" class="link">Go to Sign In</a>
       {:else}
         <div class="error-message">{message}</div>
         <a href="/register" class="link">Back to Register</a>

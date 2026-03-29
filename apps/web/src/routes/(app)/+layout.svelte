@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { checkAuth, authLoading, currentUser } from '$lib/stores/auth';
 
   let { children } = $props();
@@ -9,7 +10,7 @@
   onMount(async () => {
     const user = await checkAuth();
     if (!user) {
-      goto('/login');
+      goto(`${base}/login`);
     } else {
       ready = true;
     }

@@ -1,8 +1,8 @@
 name: Deploy to Staging
 
+# Disabled: server is on Tailscale (100.x.x.x), not reachable from GitHub Actions.
+# Use `./deploy-staging.sh` from a machine on the Tailscale network instead.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 jobs:

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
 
   let { deck, ondelete, onshare }: { deck: any; ondelete: (id: string) => void; onshare?: (id: string) => void } = $props();
 
@@ -21,7 +22,7 @@
   }
 
   function handleClick() {
-    goto(`/deck/${deck.id}`);
+    goto(`${base}/deck/${deck.id}`);
   }
 
   function handleDelete(e: MouseEvent) {

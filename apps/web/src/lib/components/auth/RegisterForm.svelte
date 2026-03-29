@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { api } from '$lib/api';
 
   let name = $state('');
@@ -103,7 +104,7 @@
     </button>
 
     <p class="form-footer">
-      Already have an account? <a href="/login">Sign in</a>
+      Already have an account? <a href="{base}/login">Sign in</a>
     </p>
   </div>
 </form>

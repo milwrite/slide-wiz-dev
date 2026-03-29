@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { api } from '$lib/api';
   import { currentUser } from '$lib/stores/auth';
   import DeckGrid from '$lib/components/gallery/DeckGrid.svelte';
@@ -48,9 +49,9 @@
     try {
       await api.logout();
       currentUser.set(null);
-      goto('/login');
+      goto(`${base}/login`);
     } catch {
-      goto('/login');
+      goto(`${base}/login`);
     }
   }
 </script>
@@ -68,7 +69,7 @@
       {#if user}
         <span class="user-name">{user.name}</span>
         {#if user.role === 'admin'}
-          <a href="/admin" class="admin-link">Admin</a>
+          <a href="{base}/admin" class="admin-link">Admin</a>
         {/if}
       {/if}
       <button class="btn-logout" onclick={handleLogout}>Sign Out</button>

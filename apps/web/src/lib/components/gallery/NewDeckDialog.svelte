@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api } from '$lib/api';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
 
   let { open = $bindable(false) }: { open: boolean } = $props();
 
@@ -24,7 +25,7 @@
       const deck = result.deck ?? result;
       open = false;
       name = '';
-      goto(`/deck/${deck.id}`);
+      goto(`${base}/deck/${deck.id}`);
     } catch (err: any) {
       error = err.message || 'Failed to create deck';
     } finally {

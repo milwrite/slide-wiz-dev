@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { base } from '$app/paths';
   import { currentUser } from '$lib/stores/auth';
   import UserApprovalQueue from '$lib/components/admin/UserApprovalQueue.svelte';
 
@@ -30,14 +31,14 @@
     <div class="denied-card">
       <h1>Access Denied</h1>
       <p>You do not have permission to view this page. Admin role is required.</p>
-      <a href="/" class="back-link">Back to Decks</a>
+      <a href="{base}/" class="back-link">Back to Decks</a>
     </div>
   </div>
 {:else if ready}
   <div class="admin-page">
     <header class="admin-header">
       <div class="header-left">
-        <a href="/" class="back-link">&larr; Back to Decks</a>
+        <a href="{base}/" class="back-link">&larr; Back to Decks</a>
         <h1>User Approval Queue</h1>
       </div>
     </header>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { base } from '$app/paths';
   import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/stores';
   import { api } from '$lib/api';
@@ -103,7 +104,7 @@
 {:else if error}
   <div class="error">
     <p>{error}</p>
-    <a href="/">Back to decks</a>
+    <a href="{base}/">Back to decks</a>
   </div>
 {:else}
   {#if readOnly}
