@@ -116,12 +116,14 @@
         </div>
       {:else}
         <div class="preview-container">
+          {#key slideHtml}
           <iframe
             class="slide-preview-frame"
             srcdoc={slideHtml}
             sandbox="allow-same-origin"
             title="Slide preview"
           ></iframe>
+          {/key}
           {#if editable}
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div class="click-overlay" ondblclick={enterEditMode}></div>
