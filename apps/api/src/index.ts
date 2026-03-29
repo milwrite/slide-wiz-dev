@@ -14,6 +14,7 @@ import providers from './routes/providers.js'
 import resources from './routes/resources.js'
 import sharing from './routes/sharing.js'
 import filesRouter from './routes/files.js'
+import search from './routes/search.js'
 
 const app = new Hono()
 
@@ -37,6 +38,7 @@ app.route('/api/decks', sharing)
 app.route('/api/chat', chat)
 app.route('/api/providers', providers)
 app.route('/api', resources)
+app.route('/api/search', search)
 
 serve({
   fetch: app.fetch,

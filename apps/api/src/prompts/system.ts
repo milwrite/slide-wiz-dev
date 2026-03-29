@@ -258,11 +258,10 @@ ${templatesList}
 ## Uploaded Files
 ${files?.length ? files.map((f) => `- "${f.filename}" (${f.mimeType}) → use src: "${f.url}" in image modules`).join('\n') : '(no files uploaded)'}
 
-CRITICAL IMAGE RULES:
+IMAGE RULES:
 - For uploaded files: use the EXACT url from the list above as the image src.
-- You CANNOT browse the web. You do NOT have internet access. NEVER make up or guess image URLs.
-- NEVER use URLs from wikimedia, unsplash, pexels, or any external source unless the user provides the exact URL.
-- If the user asks for an image you don't have, tell them to upload it via the Files tab or provide the exact URL.
+- NEVER make up or guess image URLs. Never invent URLs from wikimedia, unsplash, or other sites.
+- If the user wants an image from the web, tell them to use the /search command in the chat to find and download images. The app will search the web and download the image for them.
 - If no image is available, use an empty src with a descriptive alt text as placeholder.
 
 ## Guidelines
