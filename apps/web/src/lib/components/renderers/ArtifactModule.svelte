@@ -30,7 +30,7 @@
   })
 </script>
 
-<div class="artifact-card">
+<div class="artifact-card" style="width: {width};">
   {#if editable}
     <div class="artifact-header">
       <span class="artifact-label">{alt}</span>
@@ -41,8 +41,8 @@
       src={iframeSrc}
       class="artifact-iframe"
       class:no-interact={editable}
-      sandbox="allow-scripts"
-      loading="lazy"
+      style="height: {height};"
+      sandbox="allow-scripts allow-same-origin"
       title={alt}
     ></iframe>
   {:else}
@@ -59,7 +59,6 @@
     border-radius: 4px;
     overflow: hidden;
     background: rgba(0, 0, 0, 0.02);
-    max-width: 280px;
   }
   .artifact-header {
     display: flex;
@@ -81,8 +80,6 @@
     display: block;
     border: none;
     width: 100%;
-    aspect-ratio: 1;
-    max-height: 280px;
   }
   .artifact-iframe.no-interact {
     pointer-events: none;

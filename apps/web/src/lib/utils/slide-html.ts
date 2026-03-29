@@ -24,6 +24,62 @@ function esc(str: string): string {
     .replace(/'/g, '&#39;')
 }
 
+/** Simple markdown → HTML for text fallback (mirrors TextModule.markdownToHtml) */
+function markdownToHtml(md: string): string {
+  const lines = md.split('\n')
+  const out: string[] = []
+  let inList = false
+  let listType = ''
+
+  for (const line of lines) {
+    const bulletMatch = line.match(/^[-*]\s+(.+)/)
+    const numberedMatch = line.match(/^\d+\.\s+(.+)/)
+
+    if (bulletMatch) {
+      if (!inList || listType !== 'ul') {
+        if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+        out.push('<ul>')
+        inList = true
+        listType = 'ul'
+      }
+      out.push(`<li>${inlineMarkdown(bulletMatch[1])}</li>`)
+    } else if (numberedMatch) {
+      if (!inList || listType !== 'ol') {
+        if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+        out.push('<ol>')
+        inList = true
+        listType = 'ol'
+      }
+      out.push(`<li>${inlineMarkdown(numberedMatch[1])}</li>`)
+    } else {
+      if (inList) {
+        out.push(listType === 'ol' ? '</ol>' : '</ul>')
+        inList = false
+        listType = ''
+      }
+      if (line.trim() === '') {
+        out.push('<br>')
+      } else {
+        out.push(`<p>${inlineMarkdown(line)}</p>`)
+      }
+    }
+  }
+  if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+  return out.join('\n')
+}
+
+function inlineMarkdown(text: string): string {
+  let html = esc(text)
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
+    const safe = /^https?:\/\//i.test(url) ? url : '#'
+    return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`
+  })
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
+  return html
+}
+
 function rewriteImageSrc(src: string): string {
   if (src.startsWith('/api/')) {
     return `${API_URL}${src}`
@@ -80,15 +136,13 @@ function renderModule(mod: Module): string {
 
     case 'text': {
       // data.html is TipTap-generated structured HTML — render it directly
-      // (iframe is sandboxed; DOMPurify sanitizes on the renderer/export side)
       const html = d.html ? String(d.html) : ''
-      // Check if html has actual content (not just empty tags like <p></p>)
       const hasHtmlContent = html && html.replace(/<[^>]*>/g, '').trim().length > 0
       if (hasHtmlContent) return `<div class="text-body">${html}</div>`
-      // Fallback: plain text or markdown-ish content — escape it
-      const content = String(d.content || d.text || d.markdown || '')
-      if (content) return `<div class="text-body">${esc(content)}</div>`
-      // Last resort: render the html even if it looks empty (might have styled elements)
+      // Fallback: markdown or plain text — convert to HTML
+      const content = String(d.markdown || d.content || d.text || '')
+      if (content) return `<div class="text-body">${markdownToHtml(content)}</div>`
+      // Last resort: render the html even if it looks empty
       if (html) return `<div class="text-body">${html}</div>`
       return ''
     }

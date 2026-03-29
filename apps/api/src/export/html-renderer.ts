@@ -27,6 +27,59 @@ function sanitize(html: string): string {
   return sanitizeHtml(html, SAFE_HTML_OPTIONS)
 }
 
+/** Simple markdown → HTML for text fallback when data.html is absent */
+function markdownToHtml(md: string): string {
+  const lines = md.split('\n')
+  const out: string[] = []
+  let inList = false
+  let listType = ''
+
+  for (const line of lines) {
+    const bulletMatch = line.match(/^[-*]\s+(.+)/)
+    const numberedMatch = line.match(/^\d+\.\s+(.+)/)
+
+    if (bulletMatch) {
+      if (!inList || listType !== 'ul') {
+        if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+        out.push('<ul>')
+        inList = true
+        listType = 'ul'
+      }
+      out.push(`<li>${inlineMd(bulletMatch[1])}</li>`)
+    } else if (numberedMatch) {
+      if (!inList || listType !== 'ol') {
+        if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+        out.push('<ol>')
+        inList = true
+        listType = 'ol'
+      }
+      out.push(`<li>${inlineMd(numberedMatch[1])}</li>`)
+    } else {
+      if (inList) {
+        out.push(listType === 'ol' ? '</ol>' : '</ul>')
+        inList = false
+        listType = ''
+      }
+      if (line.trim() === '') out.push('<br>')
+      else out.push(`<p>${inlineMd(line)}</p>`)
+    }
+  }
+  if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+  return out.join('\n')
+}
+
+function inlineMd(text: string): string {
+  let html = esc(text)
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
+    const safe = /^https?:\/\//i.test(url) ? url : '#'
+    return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`
+  })
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
+  return html
+}
+
 // ── Types ───────────────────────────────────────────────────────────
 
 interface Module {
@@ -82,12 +135,17 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
     }
 
     case 'text': {
-      const content = String(d.html || d.content || d.text || '')
-      // If data.html exists, trust it as pre-rendered HTML; otherwise escape
-      const body = d.html ? sanitize(content) : esc(content)
       const cls = mod.stepOrder != null ? 'text-body step-hidden' : 'text-body'
       const ds = mod.stepOrder != null ? ` data-step="${mod.stepOrder}"` : ''
-      return `<div class="${cls}"${ds}>${body}</div>`
+      // data.html = TipTap-generated HTML — sanitize and use directly
+      if (d.html) {
+        const html = sanitize(String(d.html))
+        if (html.replace(/<[^>]*>/g, '').trim()) return `<div class="${cls}"${ds}>${html}</div>`
+      }
+      // Fallback: markdown or plain text — convert to HTML
+      const md = String(d.markdown || d.content || d.text || '')
+      if (md) return `<div class="${cls}"${ds}>${markdownToHtml(md)}</div>`
+      return ''
     }
 
     case 'card': {

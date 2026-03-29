@@ -139,7 +139,8 @@
   .zone-drop {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    justify-content: center;
+    gap: 12px;
     min-height: 2rem;
     flex: 1;
     padding: 0;
@@ -170,7 +171,7 @@
 
   .module-item {
     position: relative;
-    padding: 0;
+    padding: 4px 0;
     background: transparent;
     border-radius: var(--radius-sm, 4px);
     font-size: 0.875rem;
@@ -180,7 +181,7 @@
   }
 
   .module-item:hover {
-    background: transparent;
+    background: rgba(255, 255, 255, 0.02);
   }
 
   .module-item.just-added {

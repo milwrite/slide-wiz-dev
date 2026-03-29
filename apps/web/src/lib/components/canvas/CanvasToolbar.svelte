@@ -219,8 +219,9 @@
     cursor: default;
   }
   .slide-counter {
-    font-size: 0.9375rem;
-    color: var(--color-text-secondary);
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-text);
     font-variant-numeric: tabular-nums;
     min-width: 4em;
     text-align: center;

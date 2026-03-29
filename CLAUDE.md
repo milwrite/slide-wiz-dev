@@ -20,18 +20,21 @@ templates/    — Seeded slide template JSON files (zone-based)
 **Stack:**
 - **Frontend:** SvelteKit 2, Svelte 5 (runes), TipTap rich text editor, @chenglou/pretext for text measurement/reflow
 - **Backend:** Hono on Node (@hono/node-server), SQLite via better-sqlite3 + Drizzle ORM, Lucia v3 for auth
-- **AI:** OpenAI SDK (for OpenRouter models: Kimi K2.5, GLM 5, Gemini 3.1 Flash, Qwen 3.5 Flash). SSE streaming for chat responses with live mutation application.
+- **AI:** Two providers — Anthropic SDK (Claude Sonnet 4, Claude Haiku 4.5) and OpenAI SDK for OpenRouter (Kimi K2.5, GLM 5, Gemini 3.1 Flash, Qwen 3.5 Flash). Model selection via dropdown. SSE streaming for chat responses with live mutation application. Provider config at `apps/api/src/providers/`.
 
 ## Dev Commands
 
 ```bash
 pnpm install          # install all deps
 pnpm dev              # run both API + web via turborepo
+pnpm build            # production build (both apps)
 pnpm db:push          # push Drizzle schema changes to SQLite
 pnpm db:seed          # seed templates, default theme, and admin users
+pnpm seed:admin       # seed admin users only
+pnpm audit:a11y       # run a11y theme contrast audit
 ```
 
-**Env:** `.env` at workspace root, symlinked to `apps/api/.env` and `apps/web/.env`. See `.env.example` for all vars.
+**Env:** `.env` at workspace root, must be symlinked to `apps/api/.env` (`ln -s ../../.env apps/api/.env`). The API loads env via `dotenv/config` from its own CWD — without the symlink, no API keys are found and chat won't work. See `.env.example` for all vars. At minimum set `OPENROUTER_API_KEY` or `ANTHROPIC_API_KEY`.
 
 **Deploy to staging:** `./deploy-staging.sh` (requires Tailscale/CUNY VPN connection).
 
@@ -144,6 +147,7 @@ Produces self-contained HTML decks matching the CUNY AI Lab framework:
 - Inline JS — deck-engine (keyboard nav, step system, carousel sync, scrubber, ARIA announcements)
 - `assets/` — bundled uploaded images with rewritten URLs
 - Export code: `apps/api/src/export/` (framework-css.ts, navigation.ts, carousel.ts, html-renderer.ts, index.ts)
+- Framework CSS lives in `packages/shared/src/framework-css.ts` — single source of truth for module/layout styles. Three exports: `FRAMEWORK_CSS_BASE` (shared), `FRAMEWORK_CSS_EXPORT` (multi-slide deck), `FRAMEWORK_CSS_PREVIEW` (single-slide iframe). Both the API export and client preview import from here.
 
 ## Server Storage
 
@@ -264,3 +268,4 @@ Buttons across the app follow a ghost pattern: transparent background, 1px borde
 - Font size in format toolbar applies to entire editor DOM, not per-selection (needs TipTap TextStyle extension).
 - `adapter-auto` warning on build — could switch to `adapter-node` for production.
 - Email verification (SMTP) not configured on staging — admin must manually approve users.
+- `.env` symlink (`apps/api/.env -> ../../.env`) must exist or the API won't load any API keys. If chat shows "No models available", recreate the symlink and restart `pnpm dev`.

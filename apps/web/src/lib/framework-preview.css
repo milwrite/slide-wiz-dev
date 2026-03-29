@@ -100,16 +100,18 @@
   color: var(--theme-text, #f0f0f0) !important;
 }
 
-.slide-frame h1, .slide-frame .heading-1 { font-size: clamp(2.5rem, 5vw, 4.5rem) !important; font-weight: 600 !important; }
-.slide-frame h2, .slide-frame .heading-2 { font-size: clamp(2rem, 3.8vw, 3.2rem) !important; font-weight: 500 !important; }
-.slide-frame h3, .slide-frame .heading-3 { font-size: clamp(1.5rem, 2.8vw, 2.2rem) !important; font-weight: 500 !important; }
-.slide-frame h4, .slide-frame .heading-4 { font-size: clamp(1.2rem, 2vw, 1.6rem) !important; font-weight: 500 !important; }
+/* Edit-mode typography: scaled for the ~700px canvas, not the full viewport.
+   View/export use vw-based clamp() at 100vw; here we use smaller fixed ranges. */
+.slide-frame h1, .slide-frame .heading-1 { font-size: clamp(1.6rem, 3.5vw, 2.4rem) !important; font-weight: 600 !important; }
+.slide-frame h2, .slide-frame .heading-2 { font-size: clamp(1.3rem, 2.8vw, 1.9rem) !important; font-weight: 500 !important; }
+.slide-frame h3, .slide-frame .heading-3 { font-size: clamp(1.1rem, 2.2vw, 1.5rem) !important; font-weight: 500 !important; }
+.slide-frame h4, .slide-frame .heading-4 { font-size: clamp(0.95rem, 1.6vw, 1.2rem) !important; font-weight: 500 !important; }
 
 .slide-frame .text-block,
 .slide-frame .text-body,
 .slide-frame p {
-  font-size: clamp(1.3rem, 2.2vw, 1.8rem) !important;
-  line-height: 1.65 !important;
+  font-size: clamp(0.85rem, 1.6vw, 1.1rem) !important;
+  line-height: 1.6 !important;
   color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important;
 }
 
@@ -127,13 +129,13 @@
 .slide-frame .card {
   background: var(--theme-card-bg, rgba(255,255,255,0.03)) !important;
   border: 1px solid var(--theme-border, rgba(255,255,255,0.06)) !important;
-  border-radius: 10px !important;
-  padding: 24px !important;
+  border-radius: 8px !important;
+  padding: 14px 16px !important;
   border-left-width: 1px !important;
   color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important;
 }
-.slide-frame .card h3 { font-size: 1.3rem !important; margin-bottom: 8px !important; }
-.slide-frame .card p { font-size: 1.15rem !important; color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important; line-height: 1.5 !important; }
+.slide-frame .card h3 { font-size: 1rem !important; margin-bottom: 6px !important; }
+.slide-frame .card p { font-size: 0.9rem !important; color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important; line-height: 1.5 !important; }
 .slide-frame .card-cyan,
 .slide-frame .card[class*="cyan"] {
   border-left: 3px solid var(--theme-accent, #64b5f6) !important;
@@ -165,9 +167,9 @@
   background: color-mix(in srgb, var(--theme-accent, #64b5f6) 5%, transparent) !important;
   border: 1px solid color-mix(in srgb, var(--theme-accent, #64b5f6) 12%, transparent) !important;
   border-radius: 8px !important;
-  padding: 20px 24px !important;
-  font-size: 1.15rem !important;
-  line-height: 1.6 !important;
+  padding: 14px 16px !important;
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
   color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important;
 }
 .slide-frame .tip-box strong,
@@ -180,8 +182,8 @@
   background: rgba(0,0,0,0.3) !important;
   border: 1px solid var(--theme-border, rgba(255,255,255,0.06)) !important;
   border-radius: 8px !important;
-  padding: 20px 24px !important;
-  font-size: 1.05rem !important;
+  padding: 14px 16px !important;
+  font-size: 0.85rem !important;
   color: var(--theme-text, #f0f0f0) !important;
 }
 .slide-frame .prompt-block pre {
@@ -201,12 +203,12 @@
   padding: 0 !important;
 }
 .slide-frame .stream-list li {
-  padding: 12px 16px !important;
+  padding: 8px 12px !important;
   border-left: 2px solid var(--theme-accent, #64b5f6) !important;
-  margin-bottom: 6px !important;
+  margin-bottom: 4px !important;
   background: var(--theme-card-bg, rgba(255,255,255,0.02)) !important;
   border-radius: 0 6px 6px 0 !important;
-  font-size: 1.15rem !important;
+  font-size: 0.9rem !important;
   line-height: 1.5 !important;
   color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important;
 }
@@ -221,18 +223,18 @@
 .slide-frame .comparison-panel {
   background: var(--theme-card-bg, rgba(255,255,255,0.02)) !important;
   border: 1px solid var(--theme-border, rgba(255,255,255,0.06)) !important;
-  border-radius: 10px !important;
-  padding: 24px !important;
+  border-radius: 8px !important;
+  padding: 14px 16px !important;
   color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important;
 }
 .slide-frame .comparison-panel h3,
 .slide-frame .comparison-panel h4 {
-  font-size: 1.3rem !important;
-  margin-bottom: 8px !important;
+  font-size: 1rem !important;
+  margin-bottom: 6px !important;
   color: var(--theme-accent, #64b5f6) !important;
 }
 .slide-frame .comparison-panel p {
-  font-size: 1.15rem !important;
+  font-size: 0.9rem !important;
   color: var(--theme-text-muted, rgba(240,240,240,0.65)) !important;
   line-height: 1.5 !important;
 }
@@ -259,8 +261,8 @@
   background: var(--theme-card-bg, rgba(255,255,255,0.03)) !important;
   border: 1px solid var(--theme-border, rgba(255,255,255,0.06)) !important;
   border-radius: 8px !important;
-  padding: 14px 22px !important;
-  font-size: 1.15rem !important;
+  padding: 10px 16px !important;
+  font-size: 0.9rem !important;
   text-align: center !important;
 }
 .slide-frame .flow-node .flow-icon {

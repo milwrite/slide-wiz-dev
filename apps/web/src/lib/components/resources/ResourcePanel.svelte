@@ -78,10 +78,10 @@
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
     text-align: center;
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+    padding: 8px 2px;
   }
 
   .tab-btn:hover {

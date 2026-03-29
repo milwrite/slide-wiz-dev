@@ -210,13 +210,13 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: auto;
     font-family: var(--font-body);
     box-sizing: border-box;
     position: relative;
   }
 
-  /* ── Padding: match framework CSS (60px 80px) scaled for canvas ── */
+  /* ── Padding: scaled for the ~700px edit canvas ── */
   .slide[data-layout="title-slide"],
   .slide[data-layout="layout-divider"],
   .slide[data-layout="closing-slide"],
@@ -224,7 +224,7 @@
   .slide[data-layout="layout-content"],
   .slide[data-layout="layout-grid"],
   .slide[data-layout="layout-full-dark"] {
-    padding: clamp(2rem, 5vw, 60px) clamp(2.5rem, 6vw, 80px);
+    padding: clamp(1rem, 3vw, 32px) clamp(1.25rem, 4vw, 40px);
   }
 
   /* ── Zone containers ── */
@@ -242,7 +242,7 @@
     flex: 1;
     display: flex;
     flex-direction: row;
-    gap: clamp(1.5rem, 3vw, 40px);
+    gap: clamp(0.75rem, 2vw, 20px);
     position: relative;
     min-height: 0;
     align-items: stretch;
