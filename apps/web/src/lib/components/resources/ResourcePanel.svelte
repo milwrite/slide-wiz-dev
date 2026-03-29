@@ -68,8 +68,8 @@
 
   .tab-btn {
     flex: 1;
-    padding: 8px 4px;
-    font-size: 13px;
+    padding: 8px 2px;
+    font-size: 11px;
     font-weight: 500;
     color: var(--color-text-muted, #6b7280);
     background: none;
@@ -78,10 +78,8 @@
     cursor: pointer;
     transition: color 0.15s, border-color 0.15s;
     text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap;
     min-width: 0;
-    padding: 8px 2px;
   }
 
   .tab-btn:hover {

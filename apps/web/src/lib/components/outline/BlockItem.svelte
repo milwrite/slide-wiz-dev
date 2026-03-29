@@ -66,6 +66,7 @@
     if (block.type === 'text') return String(d.markdown || d.text || d.html || '').slice(0, 40) || 'Empty text'
     if (block.type === 'image') return String(d.alt || d.src || '').slice(0, 30) || 'Image'
     if (block.type === 'card') return String(d.title || '').slice(0, 30) || 'Card'
+    if (block.type === 'artifact') return String(d.alt || d.name || '').slice(0, 30) || 'Visualization'
     return ''
   })
 
