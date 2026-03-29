@@ -36,6 +36,28 @@
 
 {#if editor}
   <div class="format-toolbar">
+    <select class="font-size-select" onchange={(e) => {
+      const size = (e.target as HTMLSelectElement).value
+      if (size === 'default') {
+        editor?.chain().focus().unsetFontSize?.().run() || editor?.chain().focus().run()
+      } else {
+        // Use inline style via TextStyle
+        editor?.chain().focus().run()
+        const el = editor?.view.dom
+        if (el) el.style.fontSize = size
+      }
+    }} title="Font Size">
+      <option value="default">Size</option>
+      <option value="12px">12</option>
+      <option value="14px">14</option>
+      <option value="16px">16</option>
+      <option value="18px">18</option>
+      <option value="20px">20</option>
+      <option value="24px">24</option>
+      <option value="28px">28</option>
+      <option value="32px">32</option>
+    </select>
+    <div class="sep"></div>
     <button class="fmt-btn" class:active={isBold} onmousedown={cmd(() => editor?.chain().focus().toggleBold().run())} title="Bold (Ctrl+B)"><strong>B</strong></button>
     <button class="fmt-btn" class:active={isItalic} onmousedown={cmd(() => editor?.chain().focus().toggleItalic().run())} title="Italic (Ctrl+I)"><em>I</em></button>
     <div class="sep"></div>
@@ -111,5 +133,22 @@
     height: 18px;
     background: var(--color-border);
     margin: 0 4px;
+  }
+
+  .font-size-select {
+    height: 28px;
+    padding: 0 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    outline: none;
+  }
+
+  .font-size-select:hover {
+    border-color: var(--color-primary);
   }
 </style>
