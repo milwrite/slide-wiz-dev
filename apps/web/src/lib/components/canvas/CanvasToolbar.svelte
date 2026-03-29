@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { goto } from '$app/navigation'
+  import { base } from '$app/paths'
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
 
@@ -89,6 +91,8 @@
 
 <div class="canvas-toolbar">
   <div class="toolbar-left">
+    <button class="back-btn" onclick={() => goto(`${base}/`)} title="Back to decks">← Decks</button>
+    <div class="sep"></div>
     <button class="nav-btn" onclick={goToPrev} disabled={currentIndex <= 0} aria-label="Previous slide">
       &#8592;
     </button>
@@ -156,6 +160,27 @@
     border-bottom: 1px solid var(--color-border);
     background: var(--color-bg);
     flex-shrink: 0;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .back-btn:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text);
+  }
+  .sep {
+    width: 1px;
+    height: 18px;
+    background: var(--color-border);
+    margin: 0 4px;
   }
   .toolbar-left {
     display: flex;
