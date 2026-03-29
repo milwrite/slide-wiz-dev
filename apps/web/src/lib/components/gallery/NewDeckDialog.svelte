@@ -20,7 +20,8 @@
     loading = true;
 
     try {
-      const { deck } = await api.createDeck({ name: name.trim() });
+      const result = await api.createDeck({ name: name.trim() });
+      const deck = result.deck ?? result;
       open = false;
       name = '';
       goto(`/deck/${deck.id}`);
