@@ -31,7 +31,10 @@ pnpm build            # production build (both apps)
 pnpm db:push          # push Drizzle schema changes to SQLite
 pnpm db:seed          # seed templates, default theme, and admin users
 pnpm seed:admin       # seed admin users only
-pnpm audit:a11y       # run a11y theme contrast audit
+pnpm audit:a11y       # run a11y theme contrast audit (WCAG AA/AAA)
+npx vitest run        # run all unit tests
+npx vitest run tests/framework-css.test.ts  # run a single test file
+npx vitest --watch    # watch mode
 ```
 
 **Env:** `.env` at workspace root, must be symlinked to `apps/api/.env` (`ln -s ../../.env apps/api/.env`). The API loads env via `dotenv/config` from its own CWD — without the symlink, no API keys are found and chat won't work. See `.env.example` for all vars. At minimum set `OPENROUTER_API_KEY` or `ANTHROPIC_API_KEY`.
@@ -176,6 +179,7 @@ Key tables:
 - `slides` — layout, splitRatio, order
 - `content_blocks` — type, zone, data (JSON), order, stepOrder
 - `templates` — layout, modules (JSON)
+- `artifacts` — name, description, type (chart/map/diagram/visualization), source (URL or raw HTML), config (JSON), builtIn flag
 - `users`, `sessions`, `decks`, `deck_access`, `uploaded_files`, `chat_messages`, `deck_locks`
 
 Push schema changes: `pnpm db:push` (runs `drizzle-kit push` from `apps/api/`).
@@ -257,6 +261,23 @@ Editor chrome uses CSS custom properties defined in `apps/web/src/app.css`. Key 
 - No CSS framework (pure CSS + custom properties). No Tailwind.
 
 Buttons across the app follow a ghost pattern: transparent background, 1px border in `var(--color-primary)`, text in `var(--color-primary)`, with `var(--color-ghost-bg)` hover tint. Do not introduce filled-background buttons.
+
+## Testing
+
+Vitest at root level. Config: `vitest.config.ts`. Tests: `tests/**/*.test.ts`.
+
+- `tests/artifact-config.test.ts` — artifact config resolution (`getResolvedConfig`, `buildAtRef`)
+- `tests/framework-css.test.ts` — CSS specificity, layout rules, variant correctness
+
+Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`. SvelteKit aliases (`$lib/`) don't resolve in vitest — test only pure TS utilities, not Svelte components.
+
+## Resources API
+
+- `GET /api/templates` — all seeded slide templates
+- `GET /api/themes` — all themes (built-in + user-created)
+- `POST /api/themes` — create custom theme (auth required, validates hex colors and font names to prevent CSS injection)
+- `DELETE /api/themes/:id` — delete custom theme (owner only, not built-in)
+- `GET /api/artifacts` — all artifact definitions
 
 ## Known Issues / Tech Debt
 

@@ -268,16 +268,22 @@ export const FRAMEWORK_CSS_EXPORT = FRAMEWORK_CSS_BASE + `
 /* ── Overview Mode ───────────────────────────────────────────────── */
 .overview-mode { overflow: auto; }
 .overview-mode #deck {
-  display: flex; flex-wrap: wrap; gap: 20px; padding: 40px;
-  position: relative; height: auto;
+  display: flex; flex-wrap: wrap; gap: 24px; padding: 40px;
+  position: relative; height: auto; justify-content: center;
 }
 .overview-mode .slide {
-  display: flex !important; position: relative; width: 280px; height: 180px;
-  padding: 16px; border-radius: 8px; border: 1px solid var(--border-subtle);
-  cursor: pointer; font-size: 0.4rem; overflow: hidden;
-  transition: border-color 0.2s;
+  display: flex !important; position: absolute; top: 0; left: 0;
+  width: 100vw; height: 100vh;
+  transform: scale(var(--overview-scale, 0.2)); transform-origin: top left;
+  pointer-events: none; overflow: hidden; border: none; border-radius: 0;
 }
-.overview-mode .slide:hover { border-color: var(--accent-cyan); }
+.overview-mode .slide-wrapper {
+  position: relative; overflow: hidden; border-radius: 8px;
+  width: var(--overview-w, 320px); height: var(--overview-h, 180px);
+  border: 2px solid var(--border-subtle); cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.overview-mode .slide-wrapper:hover { border-color: var(--accent-cyan); box-shadow: 0 0 12px rgba(100,181,246,0.3); }
 .overview-mode #nav-bar { display: none; }
 
 /* ── Responsive ──────────────────────────────────────────────────── */

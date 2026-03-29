@@ -109,9 +109,35 @@ export const NAVIGATION_JS = `
   function toggleOverview() {
     overviewMode = !overviewMode;
     document.body.classList.toggle('overview-mode', overviewMode);
+    var deck = document.getElementById('deck');
     if (overviewMode) {
-      slides.forEach(function(s) { s.classList.add('active'); s.setAttribute('aria-hidden', 'false'); });
+      var thumbW = 320;
+      var thumbH = 180;
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+      var scale = Math.min(thumbW / vw, thumbH / vh);
+      document.documentElement.style.setProperty('--overview-scale', scale);
+      document.documentElement.style.setProperty('--overview-w', thumbW + 'px');
+      document.documentElement.style.setProperty('--overview-h', thumbH + 'px');
+      slides.forEach(function(s, i) {
+        s.classList.add('active');
+        s.setAttribute('aria-hidden', 'false');
+        var wrapper = document.createElement('div');
+        wrapper.className = 'slide-wrapper';
+        wrapper.addEventListener('click', function() {
+          currentSlide = i;
+          toggleOverview();
+        });
+        s.parentNode.insertBefore(wrapper, s);
+        wrapper.appendChild(s);
+      });
     } else {
+      var wrappers = deck.querySelectorAll('.slide-wrapper');
+      wrappers.forEach(function(w) {
+        var s = w.querySelector('.slide');
+        if (s) w.parentNode.insertBefore(s, w);
+        w.remove();
+      });
       showSlide(currentSlide);
     }
   }
