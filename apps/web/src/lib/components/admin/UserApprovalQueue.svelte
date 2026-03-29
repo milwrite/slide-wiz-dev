@@ -22,12 +22,12 @@
   let editingCapId = $state<string | null>(null);
   let editingCapValue = $state('');
 
-  const filteredUsers = $derived(() => {
+  const filteredUsers = $derived.by(() => {
     let filtered = allUsers;
     if (statusFilter !== 'all') {
       filtered = filtered.filter((u) => u.status === statusFilter);
     }
-    return filtered.sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       let aVal = a[sortField];
       let bVal = b[sortField];
       if (aVal == null) aVal = 0;
@@ -54,7 +54,8 @@
     }
   }
 
-  $effect(() => {
+  import { onMount } from 'svelte';
+  onMount(() => {
     loadUsers();
   });
 
