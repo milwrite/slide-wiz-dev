@@ -2,6 +2,14 @@
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
 
+  let {
+    editMode = false,
+    onToggleEdit,
+  }: {
+    editMode?: boolean
+    onToggleEdit?: () => void
+  } = $props()
+
   let slides = $derived($currentDeck?.slides ?? [])
   let sortedSlides = $derived([...slides].sort((a, b) => a.order - b.order))
   let currentIndex = $derived(
@@ -92,6 +100,14 @@
     </button>
   </div>
   <div class="toolbar-right">
+    <button
+      class="mode-toggle-btn"
+      class:active={editMode}
+      onclick={onToggleEdit}
+      title={editMode ? 'Switch to preview mode' : 'Switch to edit mode'}
+    >
+      {editMode ? 'Preview' : 'Edit'}
+    </button>
     <div class="branding-wrapper">
       <button class="branding-btn" onclick={() => { showBranding = !showBranding }} title="Branding / Logo">
         Logo
@@ -278,5 +294,28 @@
   .export-btn:disabled {
     opacity: 0.5;
     cursor: default;
+  }
+  .mode-toggle-btn {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 0.35rem 0.65rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .mode-toggle-btn:hover {
+    background: var(--color-bg-tertiary);
+    border-color: var(--color-text-muted);
+  }
+  .mode-toggle-btn.active {
+    background: var(--color-primary, #3b82f6);
+    color: white;
+    border-color: var(--color-primary, #3b82f6);
+  }
+  .mode-toggle-btn.active:hover {
+    opacity: 0.9;
   }
 </style>
