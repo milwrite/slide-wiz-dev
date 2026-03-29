@@ -216,19 +216,15 @@
     position: relative;
   }
 
-  /* ── Title/Divider/Closing: padding only, colors from framework-preview.css ── */
+  /* ── Padding: match framework CSS (60px 80px) scaled for canvas ── */
   .slide[data-layout="title-slide"],
   .slide[data-layout="layout-divider"],
-  .slide[data-layout="closing-slide"] {
-    padding: clamp(1.5rem, 4vw, 3rem);
-  }
-
-  /* ── Layout Split/Content/Grid: inherit from framework-preview.css ── */
+  .slide[data-layout="closing-slide"],
   .slide[data-layout="layout-split"],
   .slide[data-layout="layout-content"],
   .slide[data-layout="layout-grid"],
   .slide[data-layout="layout-full-dark"] {
-    padding: clamp(1.25rem, 3vw, 2.5rem);
+    padding: clamp(2rem, 5vw, 60px) clamp(2.5rem, 6vw, 80px);
   }
 
   /* ── Zone containers ── */
@@ -246,26 +242,38 @@
     flex: 1;
     display: flex;
     flex-direction: row;
-    gap: 0;
+    gap: clamp(1.5rem, 3vw, 40px);
     position: relative;
     min-height: 0;
+    align-items: stretch;
   }
 
-  .zone-left,
+  .zone-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    overflow: auto;
+    gap: 16px;
+  }
+
   .zone-right {
     display: flex;
     flex-direction: column;
+    justify-content: center;
+    align-items: center;
     min-width: 0;
     overflow: auto;
+    gap: 16px;
   }
 
   .zone-main {
     flex: 1;
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    gap: clamp(0.6rem, 1.5vw, 1.25rem);
+    align-items: center;
+    justify-content: center;
+    gap: clamp(1rem, 2vw, 24px);
   }
 
   /* ── Branding logo ── */

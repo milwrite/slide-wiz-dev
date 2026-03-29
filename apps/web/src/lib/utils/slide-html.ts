@@ -187,11 +187,16 @@ function renderModule(mod: Module): string {
 
     case 'artifact': {
       const rawSrc = String(d.src || d.url || '')
-      const src = /^https?:\/\//i.test(rawSrc) ? rawSrc : ''
-      const width = String(d.width || '100%')
-      const height = String(d.height || '400px')
-      const alt = esc(String(d.alt || 'Interactive widget'))
-      return `<div class="artifact-wrapper"><iframe src="${esc(src)}" width="${esc(width)}" height="${esc(height)}" style="border:none;border-radius:8px;" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
+      const rawSource = d.rawSource ? String(d.rawSource) : ''
+      const isUrl = /^https?:\/\//i.test(rawSrc)
+      const alt = esc(String(d.alt || 'Interactive visualization'))
+      if (isUrl) {
+        return `<div class="artifact-wrapper"><iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
+      }
+      if (rawSource) {
+        return `<div class="artifact-wrapper"><iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
+      }
+      return `<div class="artifact-wrapper" style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">${alt}</div>`
     }
 
     case 'code': {
@@ -233,9 +238,24 @@ function buildThemeCss(theme: Theme | null | undefined): string {
   const primaryText = isDarkPrimary ? '#ffffff' : '#1a1a2e'
   const cardBg = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'
   const border = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
+  const splitBg = dark ? '#172a45' : '#e8eef6'
+  const gridBg = dark ? '#0f3444' : '#e9f5f7'
 
   return `
     :root {
+      --theme-bg: ${bg};
+      --theme-text: ${text};
+      --theme-text-muted: ${textMuted};
+      --theme-primary: ${primary};
+      --theme-primary-text: ${primaryText};
+      --theme-secondary: ${secondary};
+      --theme-accent: ${accent};
+      --theme-heading-font: '${headingFont}';
+      --theme-body-font: '${bodyFont}';
+      --theme-card-bg: ${cardBg};
+      --theme-border: ${border};
+      --layout-split-bg: ${splitBg};
+      --layout-grid-bg: ${gridBg};
       --accent-cyan: ${accent};
       --accent-blue: ${secondary};
       --accent-navy: ${primary};
@@ -243,43 +263,26 @@ function buildThemeCss(theme: Theme | null | undefined): string {
       --text-muted: ${textMuted};
       --border-subtle: ${border};
     }
-    html, body {
-      background: ${bg};
-      color: ${text};
-      font-family: '${bodyFont}', sans-serif;
-    }
-    h1, h2, h3, h4 {
-      font-family: '${headingFont}', sans-serif;
-    }
-    .text-body { color: ${textMuted}; }
-    .title-slide, .layout-divider, .closing-slide {
-      background: ${primary};
-      color: ${primaryText};
-    }
-    .title-slide h1, .title-slide h2, .title-slide h3, .title-slide h4,
-    .layout-divider h1, .layout-divider h2, .layout-divider h3, .layout-divider h4,
-    .closing-slide h1, .closing-slide h2, .closing-slide h3, .closing-slide h4 {
-      color: ${primaryText};
-    }
-    .title-slide .text-body, .layout-divider .text-body, .closing-slide .text-body {
-      color: ${isDarkPrimary ? 'rgba(255,255,255,0.7)' : 'rgba(26,26,46,0.65)'};
-    }
-    .card {
-      background: ${cardBg};
-      border-color: ${border};
-    }
-    .card p { color: ${textMuted}; }
+    html, body { background: ${bg}; color: ${text}; font-family: '${bodyFont}', sans-serif; }
+    h1, h2, h3, h4 { font-family: '${headingFont}', sans-serif; }
+    .title-slide, .layout-divider, .closing-slide { background: ${primary}; color: ${primaryText}; }
+    .card { background: ${cardBg}; border-color: ${border}; }
     .card-cyan { border-left-color: ${accent}; }
     .card-navy { border-left-color: ${primary}; }
     .label-cyan { color: ${accent}; }
     .label-blue { color: ${secondary}; }
+    .tip-box { background: ${accent}0d; border-color: ${accent}1f; }
+    .tip-box strong { color: ${accent}; }
     .stream-list li { border-left-color: ${accent}; background: ${cardBg}; color: ${textMuted}; }
-    .comparison-panel { background: ${cardBg}; border-color: ${border}; color: ${textMuted}; }
+    .text-body { color: ${textMuted}; }
+    .comparison-panel { background: ${cardBg}; border-color: ${border}; }
+    .comparison-panel p { color: ${textMuted}; }
+    .card p { color: ${textMuted}; }
     .flow-node { background: ${cardBg}; border-color: ${border}; }
     .flow-arrow { color: ${textMuted}; }
-    blockquote { border-left-color: ${accent}; }
-    .tip-box strong { color: ${accent}; }
-    figure figcaption { color: ${textMuted}; }
+    .prompt-block { color: ${text}; }
+    blockquote { color: ${text}; }
+    figcaption { color: ${textMuted}; }
   `
 }
 
@@ -296,13 +299,16 @@ export function renderSlideHtml(slide: Slide, theme: Theme | null | undefined): 
     const stageMods = modules.filter((m) => m.zone === 'stage')
     const contentHtml = contentMods.map((m) => renderModule(m)).join('\n      ')
     const stageHtml = stageMods.map((m) => renderModule(m)).join('\n      ')
+    const ratio = parseFloat(slide.splitRatio || '0.45')
+    const contentFlex = ratio
+    const stageFlex = 1 - ratio
 
     bodyHtml = `
     <div class="slide ${esc(layout)}">
-      <div class="content">
+      <div class="content" style="flex: ${contentFlex}">
         ${contentHtml}
       </div>
-      <div class="stage">
+      <div class="stage" style="flex: ${stageFlex}">
         ${stageHtml}
       </div>
     </div>`
