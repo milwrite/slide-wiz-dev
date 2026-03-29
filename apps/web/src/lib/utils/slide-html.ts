@@ -81,10 +81,16 @@ function renderModule(mod: Module): string {
     case 'text': {
       // data.html is TipTap-generated structured HTML — render it directly
       // (iframe is sandboxed; DOMPurify sanitizes on the renderer/export side)
-      if (d.html) return `<div class="text-body">${String(d.html)}</div>`
+      const html = d.html ? String(d.html) : ''
+      // Check if html has actual content (not just empty tags like <p></p>)
+      const hasHtmlContent = html && html.replace(/<[^>]*>/g, '').trim().length > 0
+      if (hasHtmlContent) return `<div class="text-body">${html}</div>`
       // Fallback: plain text or markdown-ish content — escape it
-      const content = String(d.content || d.text || '')
-      return `<div class="text-body">${esc(content)}</div>`
+      const content = String(d.content || d.text || d.markdown || '')
+      if (content) return `<div class="text-body">${esc(content)}</div>`
+      // Last resort: render the html even if it looks empty (might have styled elements)
+      if (html) return `<div class="text-body">${html}</div>`
+      return ''
     }
 
     case 'card': {
@@ -223,6 +229,8 @@ function buildThemeCss(theme: Theme | null | undefined): string {
   const accent = theme.colors?.accent ?? '#64b5f6'
   const headingFont = theme.fonts?.heading ?? 'Outfit'
   const bodyFont = theme.fonts?.body ?? 'Inter'
+  const isDarkPrimary = isDark(primary)
+  const primaryText = isDarkPrimary ? '#ffffff' : '#1a1a2e'
   const cardBg = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'
   const border = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'
 
@@ -246,6 +254,15 @@ function buildThemeCss(theme: Theme | null | undefined): string {
     .text-body { color: ${textMuted}; }
     .title-slide, .layout-divider, .closing-slide {
       background: ${primary};
+      color: ${primaryText};
+    }
+    .title-slide h1, .title-slide h2, .title-slide h3, .title-slide h4,
+    .layout-divider h1, .layout-divider h2, .layout-divider h3, .layout-divider h4,
+    .closing-slide h1, .closing-slide h2, .closing-slide h3, .closing-slide h4 {
+      color: ${primaryText};
+    }
+    .title-slide .text-body, .layout-divider .text-body, .closing-slide .text-body {
+      color: ${isDarkPrimary ? 'rgba(255,255,255,0.7)' : 'rgba(26,26,46,0.65)'};
     }
     .card {
       background: ${cardBg};
